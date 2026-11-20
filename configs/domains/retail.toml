@@ -1,0 +1,5 @@
+title = "Units sold by product ({year})"
+categories = ["Coffee", "Tea", "Cocoa", "Juice", "Water", "Milk", "Bread", "Cheese"]
+value_range = [12000, 480000]
+value_format = "{:,}"
+families = ["bar", "line"]

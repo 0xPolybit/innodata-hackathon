@@ -1,0 +1,13 @@
+# Terms that must not appear in synthetic domain titles or categories.
+# Matching is case-insensitive and whole-word; keep one term per line.
+election
+elections
+political party
+patient
+dosage
+medication
+face
+faces
+minor
+children
+hate

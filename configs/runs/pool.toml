@@ -1,0 +1,18 @@
+# Full MVP pool: 3 domains x 2 families x up to 5 question types, about 500 tasks.
+# Floor plans are out of the MVP (solo cut in docs/PLAN.md section 5).
+run_seed = 20261210
+tasks_per_cell = 40
+question_in_image = true
+families = ["bar", "line"]
+domains = ["tourism", "retail", "energy"]
+question_types = ["value_lookup", "extremum", "rank_k", "pair_compare", "series_at_x"]
+
+[checks]
+ambiguity_min_margin = 0.05
+min_font_px = 9
+near_dup_phash_max = 6
+
+[eval]
+items_per_model = 200
+stratify_by = ["family", "question_type"]
+models = "configs/models.toml"

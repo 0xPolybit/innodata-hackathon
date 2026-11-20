@@ -1,0 +1,38 @@
+# Model roster for the benchmark. Checked 2026-11-19: model IDs from each provider's public model list,
+# and one live test call per provider. Free tiers only. No billing or credit purchase.
+
+[[models]]
+id = "gemini-3.5-flash-lite"
+provider = "gemini"
+role = "evaluated"
+inputs = ["text", "image"]
+test_call = "pass (19 Nov)"
+limits = "unknown: per-model free limits not readable from the pages checked. Throttle on HTTP 429 and resume."
+notes = "Stable (non-preview). Image input listed on the AI Studio pricing page. Free-tier prompts may be used by Google; data is synthetic."
+
+[[models]]
+id = "gemini-3.1-flash-lite"
+provider = "gemini"
+role = "evaluated"
+inputs = ["text", "image"]
+test_call = "not yet run"
+limits = "unknown: as above"
+notes = "Stable (non-preview). Image input listed on the AI Studio pricing page."
+
+[[models]]
+id = "nvidia/nemotron-3.5-super-vl:free"
+provider = "openrouter"
+role = "evaluated"
+inputs = ["text", "image", "video"]
+test_call = "pass (19 Nov)"
+limits = "20 requests per minute and 50 per day in total without purchase. Do not buy credits."
+notes = "Reasoning model: hidden reasoning uses output tokens, so set max_tokens of at least 1024 or the answer comes back empty. Cost reported as 0."
+
+[[models]]
+id = "gemma3:4b"
+provider = "ollama"
+role = "secondary"
+inputs = ["text", "image"]
+test_call = "pass (19 Nov)"
+limits = "local, no quota. About 7 to 10 s per short text answer on this CPU (19 Nov)."
+notes = "Secondary check only. Never decides validity and is never in the evaluated set."

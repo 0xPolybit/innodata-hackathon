@@ -1,0 +1,5 @@
+title = "International tourist arrivals ({year})"
+categories = ["France", "Spain", "Italy", "Japan", "Mexico", "Thailand", "Turkey", "Germany"]
+value_range = [2000000, 90000000]
+value_format = "{:.1f}M"
+families = ["bar", "line"]
