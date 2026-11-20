@@ -65,7 +65,8 @@ _RANK_K = "rank_k"
 _PAIR_COMPARE = "pair_compare"
 
 # The ordinal words questions.py writes in a rank_k question, each with the rank it
-# asks for: "second" is rank 2, the lowest rank a rank_k question can ask.
+# asks for: "second" is rank 2, the lowest rank a rank_k question can ask, and
+# "nineteenth" is rank 19, the highest a 20-category chart can be asked.
 _RANK_WORDS: dict[str, int] = {
     "second": 2,
     "third": 3,
@@ -74,6 +75,17 @@ _RANK_WORDS: dict[str, int] = {
     "sixth": 6,
     "seventh": 7,
     "eighth": 8,
+    "ninth": 9,
+    "tenth": 10,
+    "eleventh": 11,
+    "twelfth": 12,
+    "thirteenth": 13,
+    "fourteenth": 14,
+    "fifteenth": 15,
+    "sixteenth": 16,
+    "seventeenth": 17,
+    "eighteenth": 18,
+    "nineteenth": 19,
 }
 _RANK_QUESTION = re.compile(r"Which category ranks (\w+) by value\?")
 
@@ -472,7 +484,7 @@ def rank_from_question(question: Any) -> int | None:
     """The rank a ``rank_k`` question asks for: 2 for "Which category ranks second by value?".
 
     Returns None when ``question`` is not a string or does not use one of the
-    ordinals questions.py writes, which run from "second" to "eighth".
+    ordinals questions.py writes, which run from "second" to "nineteenth".
     """
     if not isinstance(question, str):
         return None

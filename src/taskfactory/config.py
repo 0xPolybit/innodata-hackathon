@@ -20,6 +20,13 @@ QUESTION_TYPE_NAMES = (
 )
 MODEL_ROLES = ("evaluated", "secondary")
 
+# Most categories a bar chart draws when a run config leaves bar_max_categories out.
+DEFAULT_BAR_MAX_CATEGORIES = 8
+# The range the bar_max_categories run key accepts. The top of the range is also the
+# most bars a bar spec may hold, as validate_spec enforces.
+BAR_MAX_CATEGORIES_MIN = 2
+BAR_MAX_CATEGORIES_MAX = 20
+
 _RUN_KEYS = frozenset(
     {
         "run_seed",
@@ -30,6 +37,7 @@ _RUN_KEYS = frozenset(
         "question_types",
         "checks",
         "eval",
+        "bar_max_categories",
     }
 )
 _DOMAIN_KEYS = frozenset(
@@ -73,6 +81,7 @@ class RunConfig:
     question_types: list[str]
     checks: dict[str, Any] = field(default_factory=dict)
     eval: EvalConfig = field(default_factory=EvalConfig)
+    bar_max_categories: int = DEFAULT_BAR_MAX_CATEGORIES
 
 
 @dataclass
@@ -136,7 +145,11 @@ def _require(data: Mapping[str, Any], key: str, *, prefix: str = "") -> Any:
 
 
 def _get_int(
-    data: Mapping[str, Any], key: str, *, minimum: int | None = None
+    data: Mapping[str, Any],
+    key: str,
+    *,
+    minimum: int | None = None,
+    maximum: int | None = None,
 ) -> int:
     """Return an integer value, rejecting booleans, or raise."""
     value = _require(data, key)
@@ -146,6 +159,8 @@ def _get_int(
         )
     if minimum is not None and value < minimum:
         raise ConfigError(f"{key}: must be at least {minimum}, got {value}")
+    if maximum is not None and value > maximum:
+        raise ConfigError(f"{key}: must be at most {maximum}, got {value}")
     return value
 
 
@@ -246,6 +261,18 @@ def _load_eval(data: Mapping[str, Any]) -> EvalConfig:
     )
 
 
+def _load_bar_max_categories(data: Mapping[str, Any]) -> int:
+    """The optional ``bar_max_categories`` key, or the default when it is absent."""
+    if "bar_max_categories" not in data:
+        return DEFAULT_BAR_MAX_CATEGORIES
+    return _get_int(
+        data,
+        "bar_max_categories",
+        minimum=BAR_MAX_CATEGORIES_MIN,
+        maximum=BAR_MAX_CATEGORIES_MAX,
+    )
+
+
 def load_run_config(path: str | Path) -> RunConfig:
     """Load and validate a run configuration from ``path``."""
     _, data = _load_toml(path)
@@ -261,6 +288,7 @@ def load_run_config(path: str | Path) -> RunConfig:
     )
     checks = _get_table(data, "checks")
     eval_config = _load_eval(data)
+    bar_max_categories = _load_bar_max_categories(data)
 
     return RunConfig(
         run_seed=run_seed,
@@ -271,6 +299,7 @@ def load_run_config(path: str | Path) -> RunConfig:
         question_types=question_types,
         checks=dict(checks),
         eval=eval_config,
+        bar_max_categories=bar_max_categories,
     )
 
 

@@ -384,3 +384,83 @@ def test_validate_rejects_label_count_mismatch(
 
     with pytest.raises(ValueError, match="differ in length"):
         validate_spec(spec)
+
+
+def test_default_cap_keeps_the_pool_spec_it_drew_before_the_key_existed() -> None:
+    run_cfg = load_run_config(CONFIGS / "runs" / "pool.toml")
+    domain_cfg = load_domain(CONFIGS / "domains" / "tourism.toml")
+
+    assert run_cfg.bar_max_categories == 8
+    assert sample_spec(run_cfg, domain_cfg, "bar", 0) == {
+        "domain": "tourism",
+        "family": "bar",
+        "index": 0,
+        "orientation": "horizontal",
+        "question_in_image": True,
+        "seed": 3498640343,
+        "series": [
+            {
+                "labels": ["31.5M", "67.4M", "23.8M", "79.8M", "2.5M"],
+                "name": "",
+                "values": [31485119, 67365801, 23792964, 79782391, 2522023],
+            }
+        ],
+        "spec_version": 1,
+        "title": "International tourist arrivals (2015)",
+        "x_label_rotation": 30,
+        "x_labels": ["Spain", "Italy", "Germany", "France", "Japan"],
+    }
+
+
+def test_bar_max_categories_caps_the_bar_count() -> None:
+    default_run = load_run_config(CONFIGS / "runs" / "hard.toml")
+    wide_run = load_run_config(CONFIGS / "runs" / "hard2.toml")
+    energy = load_domain(CONFIGS / "domains" / "energy_hard.toml")  # 16 categories
+    tourism = load_domain(CONFIGS / "domains" / "tourism.toml")  # 8 categories
+
+    def bar_counts(run_cfg: RunConfig, domain_cfg: DomainConfig) -> set[int]:
+        return {
+            len(sample_spec(run_cfg, domain_cfg, "bar", index)["x_labels"])
+            for index in range(200)
+        }
+
+    assert bar_counts(default_run, energy) == set(range(4, 9))
+    assert bar_counts(wide_run, energy) == set(range(4, 13))
+    # The domain has only 8 categories, so the cap of 12 cannot add more.
+    assert bar_counts(wide_run, tourism) == set(range(4, 9))
+
+
+def test_wide_bar_specs_validate_and_keep_the_margin() -> None:
+    run_cfg = load_run_config(CONFIGS / "runs" / "hard2.toml")
+    energy = load_domain(CONFIGS / "domains" / "energy_hard.toml")
+
+    for index in range(200):
+        spec = sample_spec(run_cfg, energy, "bar", index)
+        validate_spec(spec)
+
+        assert _relative_margin(spec["series"][0]["values"]) >= 0.02
+
+
+def test_sampler_refuses_a_cap_outside_the_range() -> None:
+    run_cfg = load_run_config(CONFIGS / "runs" / "demo.toml")
+    domain_cfg = load_domain(CONFIGS / "domains" / "tourism.toml")
+
+    with pytest.raises(ValueError, match="bar_max_categories"):
+        sample_spec(replace(run_cfg, bar_max_categories=1), domain_cfg, "bar", 0)
+
+
+def test_validate_spec_accepts_twenty_bars_and_rejects_twenty_one() -> None:
+    run_cfg = load_run_config(CONFIGS / "runs" / "demo.toml")
+    domain_cfg = load_domain(CONFIGS / "domains" / "energy.toml")
+
+    def with_bars(count: int) -> dict:
+        spec = sample_spec(run_cfg, domain_cfg, "bar", 0)
+        values = [1000 + 7 * position for position in range(count)]
+        spec["x_labels"] = [f"Bar {position}" for position in range(count)]
+        spec["series"][0]["values"] = values
+        spec["series"][0]["labels"] = [str(value) for value in values]
+        return spec
+
+    validate_spec(with_bars(20))
+    with pytest.raises(ValueError, match="between 1 and 20"):
+        validate_spec(with_bars(21))

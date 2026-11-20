@@ -28,6 +28,8 @@ _RANK_K = "rank_k"
 _PAIR_COMPARE = "pair_compare"
 _SERIES_AT_X = "series_at_x"
 
+# Ordinal words for the ranks a rank_k question asks for: index i names rank i + 2,
+# so the tuple covers ranks 2 to 19, enough for a 20-category chart.
 _ORDINALS = (
     "second",
     "third",
@@ -36,6 +38,17 @@ _ORDINALS = (
     "sixth",
     "seventh",
     "eighth",
+    "ninth",
+    "tenth",
+    "eleventh",
+    "twelfth",
+    "thirteenth",
+    "fourteenth",
+    "fifteenth",
+    "sixteenth",
+    "seventeenth",
+    "eighteenth",
+    "nineteenth",
 )
 
 
@@ -292,7 +305,7 @@ def _rank_k_task(
     if rank - 2 >= len(_ORDINALS):
         raise ValueError(
             f"rank_k: no ordinal for rank {rank}; "
-            f"at most {len(_ORDINALS) + 1} categories are supported"
+            f"at most {len(_ORDINALS) + 2} categories are supported"
         )
 
     ranked = sorted(

@@ -7,9 +7,10 @@ from typing import Any
 
 import pytest
 
+from taskfactory.checks_layout import rank_from_question
 from taskfactory.config import load_domain, load_run_config
 from taskfactory.questions import make_questions, normalise_answer
-from taskfactory.sampler import sample_batch
+from taskfactory.sampler import sample_batch, validate_spec
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 RUN_PATH = REPO_ROOT / "configs" / "runs" / "demo.toml"
@@ -417,3 +418,20 @@ def test_sampled_line_specs_all_get_ground_truth_answers() -> None:
             produced += 1
 
     assert produced >= 1
+
+
+def test_rank_k_names_every_rank_up_to_nineteenth_and_layout_reads_it_back() -> None:
+    """A 20-bar chart can ask for ranks second to nineteenth, and checks_layout reads each back."""
+    x_labels = [f"Category {position:02d}" for position in range(20)]
+    values = [round(1_000_000 * 0.93**position) for position in range(20)]
+    labels = [f"{value:,}" for value in values]
+
+    for rank in range(2, 20):
+        spec = bar_spec(seed=rank - 2, x_labels=x_labels, values=values, labels=labels)
+        validate_spec(spec)
+
+        rank_k = tasks_by_type(spec)["rank_k"]
+
+        assert rank_from_question(rank_k["question"]) == rank
+        assert rank_k["answer"] == x_labels[rank - 1]
+        assert rank_k["answer_value"] == values[rank - 1]

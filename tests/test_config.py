@@ -181,6 +181,47 @@ def test_missing_checks_table_is_rejected(tmp_path: Path) -> None:
         load_run_config(_write(tmp_path, "run.toml", text))
 
 
+def test_bar_max_categories_defaults_to_eight() -> None:
+    for name in ("demo", "pool", "hard"):
+        config = load_run_config(CONFIGS / "runs" / f"{name}.toml")
+
+        assert config.bar_max_categories == 8
+
+
+def test_bar_max_categories_is_read_from_the_run_config() -> None:
+    config = load_run_config(CONFIGS / "runs" / "hard2.toml")
+
+    assert config.bar_max_categories == 12
+
+
+@pytest.mark.parametrize("value", [2, 20])
+def test_bar_max_categories_accepts_both_bounds(tmp_path: Path, value: int) -> None:
+    text = VALID_RUN.replace("[checks]", f"bar_max_categories = {value}\n\n[checks]")
+
+    config = load_run_config(_write(tmp_path, "run.toml", text))
+
+    assert config.bar_max_categories == value
+
+
+@pytest.mark.parametrize(
+    ("literal", "message"),
+    [
+        ("1", "must be at least 2"),
+        ("21", "must be at most 20"),
+        ("8.0", "expected an integer, got float"),
+        ("true", "expected an integer, got boolean"),
+        ('"12"', "expected an integer, got string"),
+    ],
+)
+def test_bar_max_categories_must_be_an_integer_from_two_to_twenty(
+    tmp_path: Path, literal: str, message: str
+) -> None:
+    text = VALID_RUN.replace("[checks]", f"bar_max_categories = {literal}\n\n[checks]")
+
+    with pytest.raises(ConfigError, match=f"bar_max_categories: {message}"):
+        load_run_config(_write(tmp_path, "run.toml", text))
+
+
 def test_load_blocklist_ignores_comments_and_blanks() -> None:
     terms = load_blocklist(CONFIGS / "blocklist.txt")
 

@@ -37,6 +37,14 @@ all series at one x position -- has two equal values or a top-two relative
 margin below the threshold. Each series still holds distinct values of its
 own. A line spec that cannot satisfy both rules in 200 attempts raises
 :class:`ValueError` naming the family, domain and index.
+
+Bar category count
+------------------
+A bar draw uses at most ``min(bar_max_categories, len(domain categories))``
+categories and at least ``min(4, that)``. ``bar_max_categories`` is the run
+config key, 8 when the run leaves it out. :func:`validate_spec` accepts up to
+``BAR_MAX_CATEGORIES_MAX`` (20) bars, because a spec does not record the cap a
+run drew it under.
 """
 
 from __future__ import annotations
@@ -45,7 +53,13 @@ import hashlib
 import random
 from typing import Any
 
-from taskfactory.config import DomainConfig, RunConfig
+from taskfactory.config import (
+    BAR_MAX_CATEGORIES_MAX,
+    BAR_MAX_CATEGORIES_MIN,
+    DEFAULT_BAR_MAX_CATEGORIES,
+    DomainConfig,
+    RunConfig,
+)
 
 __all__ = [
     "SPEC_VERSION",
@@ -65,7 +79,6 @@ _ORIENTATIONS = ("vertical", "horizontal")
 _X_LABEL_ROTATIONS = (0, 30)
 
 _BAR_MIN_CATEGORIES = 4
-_BAR_MAX_CATEGORIES = 8
 _LINE_MIN_POINTS = 6
 _LINE_MAX_POINTS = 10
 _LINE_LAST_YEAR = 2025
@@ -240,7 +253,7 @@ def _sample_bar(
     if not categories:
         raise ValueError("domain config has no categories")
 
-    upper = min(_BAR_MAX_CATEGORIES, len(categories))
+    upper = min(_bar_max_categories(run_cfg), len(categories))
     lower = min(_BAR_MIN_CATEGORIES, upper)
     count = rng.randint(lower, upper)
     x_labels = rng.sample(categories, count)
@@ -348,6 +361,19 @@ def _distinct_values(
         seen.add(value)
         values.append(value)
     return values
+
+
+def _bar_max_categories(run_cfg: RunConfig) -> int:
+    """The run's most bars per chart, from ``bar_max_categories`` (default 8)."""
+    value = getattr(run_cfg, "bar_max_categories", DEFAULT_BAR_MAX_CATEGORIES)
+    if isinstance(value, bool) or not isinstance(value, int) or not (
+        BAR_MAX_CATEGORIES_MIN <= value <= BAR_MAX_CATEGORIES_MAX
+    ):
+        raise ValueError(
+            "bar_max_categories: expected an integer from "
+            f"{BAR_MAX_CATEGORIES_MIN} to {BAR_MAX_CATEGORIES_MAX}, got {value!r}"
+        )
+    return value
 
 
 def _ambiguity_min_margin(run_cfg: RunConfig) -> float:
@@ -466,10 +492,10 @@ def _validate_bar(
             "spec.series[0].values: expected "
             f"{len(x_labels)} values to match x_labels, got {len(values)}"
         )
-    if not 1 <= len(values) <= _BAR_MAX_CATEGORIES:
+    if not 1 <= len(values) <= BAR_MAX_CATEGORIES_MAX:
         raise ValueError(
             "spec.series[0].values: a bar spec needs between 1 and "
-            f"{_BAR_MAX_CATEGORIES} values, got {len(values)}"
+            f"{BAR_MAX_CATEGORIES_MAX} values, got {len(values)}"
         )
 
 
