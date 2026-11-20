@@ -1,7 +1,8 @@
-"""The self-contained results page: summary, seven checks, cards and rejects.
+"""The self-contained results page: summary band, seven checks, cards and rejects.
 
 The page is built from a :class:`~taskfactory.web.generate.GenerationResult`
-whose ``artifacts`` hold the run's files. Every image is embedded as a base64
+whose ``artifacts`` hold the run's files and is wrapped in the shared
+:func:`~taskfactory.web.theme.page_shell`. Every image is embedded as a base64
 data URI, every text value is escaped, and the document loads no script and no
 external resource. If the finished page would be larger than
 :data:`MAX_PAGE_BYTES`, the section 9 "too large" message page is returned
@@ -19,15 +20,16 @@ from typing import TYPE_CHECKING, Any
 from taskfactory.web import forms
 from taskfactory.web.generate import RESULT_TOO_LARGE_MESSAGE
 from taskfactory.web.results_summary import render_message
+from taskfactory.web.theme import ICONS, page_shell
 
 if TYPE_CHECKING:  # avoids importing the generator at page-render time
     from taskfactory.web.generate import GenerationResult, TaskSummary
 
-__all__ = ["CHECK_NAMES", "MAX_PAGE_BYTES", "render_results_page"]
+__all__ = ["CHECK_NAMES", "CHECK_LABELS", "MAX_PAGE_BYTES", "render_results_page"]
 
 # The seven checks, in the order the bar pipeline runs them. The line checks
 # carry a family prefix (``5_line_pixels``); _check_outcomes maps them back to
-# these names so one table covers every task.
+# these names so one list covers every task.
 CHECK_NAMES = (
     "1_schema",
     "2_layout",
@@ -45,111 +47,141 @@ _CHECK_ALIASES = {
     "7_line_redraw": "7_redraw",
 }
 
+# Plain English for the same seven ids, so the page reads without jargon.
+CHECK_LABELS = {
+    "1_schema": "Schema",
+    "2_layout": "Layout",
+    "3_ambiguity": "Ambiguity",
+    "7_redraw": "Redraw",
+    "4_ocr": "OCR read-back",
+    "5_pixels": "Pixel reader",
+    "6_counterfactual": "Counterfactual",
+}
+
+EMPTY_ACCEPTED_MESSAGE = (
+    "No tasks were accepted for these settings. Try a different seed or fewer "
+    "question types."
+)
+
 MAX_PAGE_BYTES = 4_000_000
 
+_MONO = 'ui-monospace, "Cascadia Mono", Consolas, monospace'
+
+
+def _svg(paths: str) -> str:
+    """One local Lucide-style icon, in the same shape as the shared icons."""
+    return (
+        '<svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" '
+        'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" '
+        f'aria-hidden="true">{paths}</svg>'
+    )
+
+
+# The shared icon set has no home, download, plain check or plain x; these four
+# live here so the shared theme stays the form's stylesheet.
+_ICONS = {
+    "home": _svg(
+        '<path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/>'
+        '<path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 '
+        '5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>'
+    ),
+    "download": _svg(
+        '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>'
+        '<polyline points="7 10 12 15 17 10"/>'
+        '<line x1="12" x2="12" y1="15" y2="3"/>'
+    ),
+    "check": _svg('<path d="M20 6 9 17l-5-5"/>'),
+    "x": _svg('<path d="M18 6 6 18"/><path d="m6 6 12 12"/>'),
+}
+
 _STYLE = """
-:root { color-scheme: light dark; }
-* { box-sizing: border-box; }
-body {
-  margin: 0;
-  background: #f6f7f9;
-  color: #1f2933;
-  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
-  line-height: 1.45;
+.breadcrumb { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem; margin: 0 0 1rem; color: var(--muted-foreground); font-size: 0.85rem; }
+.breadcrumb a { display: inline-flex; align-items: center; gap: 0.35rem; margin-left: -0.45rem; padding: 0.25rem 0.45rem; border-radius: calc(var(--radius) - 2px); font-weight: 500; }
+.breadcrumb a:hover { background: var(--accent); color: var(--foreground); text-decoration: none; }
+.breadcrumb-sep { opacity: 0.55; }
+.page-head { margin-bottom: 1.5rem; }
+.page-head h1 { margin: 0 0 0.4rem; font-size: clamp(1.75rem, 5vw, 2.35rem); line-height: 1.1; letter-spacing: -0.02em; }
+.page-lead { margin: 0; max-width: 44rem; color: var(--muted-foreground); }
+.stat-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem; }
+.stat-tile { min-width: 0; padding: 0.85rem 1rem; border: 1px solid var(--border); border-radius: calc(var(--radius) - 2px); background: var(--background); }
+.stat-label { display: flex; align-items: center; gap: 0.4rem; margin: 0; color: var(--muted-foreground); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }
+.stat-value { margin: 0.3rem 0 0; font-size: 1.7rem; font-weight: 700; line-height: 1.1; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.meter { height: 4px; margin-top: 0.55rem; border-radius: 999px; background: var(--muted); overflow: hidden; }
+.meter-fill { display: block; height: 100%; border-radius: 999px; background: var(--success); }
+.meter-yield .meter-fill { background: var(--primary); }
+.run-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 0.9rem; margin: 0.9rem 0 0; color: var(--muted-foreground); font-size: 0.85rem; }
+.meta-label { margin-right: 0.15rem; color: var(--muted-foreground); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }
+.run-meta code, .commit-details code, .task-title code, .check-code { font-family: __MONO__; }
+.run-meta code { font-size: 0.8rem; overflow-wrap: anywhere; }
+.commit-details { margin-top: 0.7rem; font-size: 0.85rem; }
+.commit-details summary { display: inline-flex; cursor: pointer; border-radius: calc(var(--radius) - 3px); color: var(--muted-foreground); font-size: 0.8rem; font-weight: 600; }
+.commit-details summary:hover { color: var(--foreground); }
+.commit-details p { margin: 0.4rem 0 0; }
+.commit-details code { font-size: 0.8rem; overflow-wrap: anywhere; }
+.band-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.65rem; margin-top: 1.1rem; }
+.band-actions form { margin: 0; }
+.results-section { margin-top: 2rem; }
+.section-head h2 { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin: 0 0 0.9rem; font-size: 1.3rem; letter-spacing: -0.01em; }
+.check-list { list-style: none; display: grid; gap: 0.95rem; margin: 0; padding: 0; }
+.check-row { min-width: 0; }
+.check-line { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.2rem 0.75rem; }
+.check-name { font-size: 0.9rem; font-weight: 600; }
+.check-code { color: var(--muted-foreground); font-size: 0.75rem; font-weight: 400; }
+.check-score { color: var(--muted-foreground); font-size: 0.8rem; font-variant-numeric: tabular-nums; }
+.check-row .meter { margin-top: 0.35rem; }
+.checks-card .alert { margin-top: 1rem; }
+.task-grid { list-style: none; display: grid; grid-template-columns: minmax(0, 1fr); gap: 1rem; margin: 0; padding: 0; }
+.task-card { display: flex; flex-direction: column; min-width: 0; overflow: hidden; }
+.task-media { padding: 0.6rem 0.6rem 0; }
+.task-media img { display: block; width: 100%; height: auto; border: 1px solid var(--border); border-radius: calc(var(--radius) - 2px); }
+.rejected-card .task-media img { opacity: 0.8; }
+.task-body { display: flex; flex: 1; flex-direction: column; gap: 0.55rem; min-width: 0; padding: 0.75rem 1rem 1rem; }
+.task-title { margin: 0; color: var(--muted-foreground); font-size: 0.72rem; font-weight: 600; overflow-wrap: anywhere; }
+.task-title code { font-size: 0.74rem; }
+.task-question { margin: 0; font-size: 0.95rem; line-height: 1.45; overflow-wrap: anywhere; }
+.answer-box { display: flex; align-items: flex-start; gap: 0.5rem; padding: 0.55rem 0.7rem; border: 1px solid color-mix(in srgb, var(--success) 28%, var(--border)); border-radius: calc(var(--radius) - 2px); background: color-mix(in srgb, var(--success) 8%, var(--card)); }
+.answer-box > .icon { margin-top: 0.15rem; color: color-mix(in srgb, var(--success) 75%, var(--foreground)); }
+.answer-label { display: block; color: var(--muted-foreground); font-size: 0.68rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+.answer-value { margin: 0.05rem 0 0; font-weight: 600; overflow-wrap: anywhere; }
+.task-badges, .check-chips { list-style: none; display: flex; flex-wrap: wrap; gap: 0.3rem; margin: 0; padding: 0; }
+.task-badges .badge { font-size: 0.7rem; font-weight: 600; }
+.task-checks { margin: 0; color: var(--muted-foreground); font-size: 0.78rem; }
+.check-chips { gap: 0.28rem; }
+.check-chips .badge { gap: 0.25rem; padding: 0.12rem 0.45rem; font-size: 0.68rem; }
+.check-chips .icon { width: 0.95em; height: 0.95em; }
+.alert-text { min-width: 0; }
+.alert-text ul { margin: 0; padding-left: 1rem; }
+.reason-list li { overflow-wrap: anywhere; }
+.empty-line { display: flex; align-items: flex-start; gap: 0.6rem; margin: 0; color: var(--muted-foreground); font-size: 0.9rem; }
+.empty-line .icon { margin-top: 0.15rem; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+@media (min-width: 720px) {
+  .stat-tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .task-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
-main { max-width: 960px; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
-h1 { font-size: 1.7rem; margin: 0 0 0.3rem; }
-h2 { font-size: 1.2rem; margin: 1.6rem 0 0.5rem; }
-h3 { font-size: 1rem; margin: 0; }
-.lead { margin: 0 0 1.2rem; font-size: 1.05rem; }
-.note {
-  background: #fff7e6;
-  border: 1px solid #e8c98a;
-  border-radius: 8px;
-  padding: 0.6rem 0.75rem;
-  margin: 0.7rem 0;
-  font-size: 0.95rem;
+@media (min-width: 1040px) {
+  .task-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: #ffffff;
-  border: 1px solid #d9dee5;
-  border-radius: 10px;
-  overflow: hidden;
-  font-size: 0.92rem;
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes result-card-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  .task-card {
+    animation: result-card-in 320ms ease-out both;
+    transition: transform 160ms ease, box-shadow 160ms ease;
+  }
+  @media (hover: hover) {
+    .task-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 24px rgb(0 0 0 / 0.12);
+    }
+  }
 }
-th, td {
-  padding: 0.5rem 0.6rem;
-  border-bottom: 1px solid #e4e8ee;
-  text-align: left;
-  vertical-align: top;
+@media (prefers-color-scheme: dark) and (prefers-reduced-motion: no-preference) and (hover: hover) {
+  .task-card:hover { box-shadow: 0 10px 24px rgb(0 0 0 / 0.55); }
 }
-thead th { background: #eef2f7; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.02em; }
-tbody th { width: 13rem; color: #52606d; font-weight: 600; }
-tr:last-child td, tr:last-child th { border-bottom: 0; }
-.summary .main-count td, .summary .main-count th { font-size: 1.08rem; color: #1f2933; }
-.summary .main-count strong { font-size: 1.35rem; }
-.cards { list-style: none; margin: 0; padding: 0; display: grid; gap: 1rem; }
-.card {
-  background: #ffffff;
-  border: 1px solid #d9dee5;
-  border-radius: 10px;
-  padding: 1rem;
-}
-.card.rejected { border-left: 4px solid #c0392b; }
-.card-head { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: baseline; justify-content: space-between; }
-.card img {
-  display: block;
-  width: 100%;
-  max-width: 720px;
-  height: auto;
-  margin: 0.75rem 0;
-  border: 1px solid #e4e8ee;
-  border-radius: 6px;
-}
-.question { margin: 0.4rem 0 0.25rem; }
-.answer { margin: 0 0 0.4rem; }
-.meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: 0.35rem 1rem; margin: 0.6rem 0; }
-.meta dt { color: #52606d; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.02em; }
-.meta dd { margin: 0; font-weight: 600; }
-.checks-summary { margin: 0.4rem 0 0.3rem; color: #52606d; font-size: 0.9rem; }
-.chips { list-style: none; display: flex; flex-wrap: wrap; gap: 0.35rem; margin: 0; padding: 0; }
-.chip { border-radius: 999px; padding: 0.18rem 0.55rem; font-size: 0.82rem; border: 1px solid; }
-.chip.passed { background: #e8f5ec; border-color: #9fd3ad; color: #1e6b33; }
-.chip.failed { background: #fdecea; border-color: #e6a7a0; color: #8c1d12; }
-.failures { margin: 0.5rem 0 0; padding-left: 1.2rem; }
-.download { margin-top: 1.6rem; }
-button {
-  margin-top: 0.5rem;
-  padding: 0.7rem 1.1rem;
-  border: 0;
-  border-radius: 7px;
-  background: #1a5fb4;
-  color: #ffffff;
-  font: inherit;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-}
-button:hover { background: #164d92; }
-.foot { margin-top: 1.4rem; font-size: 0.95rem; }
-a { color: #1a5fb4; }
-code { font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; font-size: 0.9em; }
-@media (prefers-color-scheme: dark) {
-  body { background: #14171c; color: #e6e9ee; }
-  .card, table { background: #1c2027; border-color: #333a45; }
-  thead th { background: #232933; }
-  th, td { border-color: #333a45; }
-  tbody th, .checks-summary, .meta dt { color: #a7b0bd; }
-  .summary .main-count td, .summary .main-count th { color: #e6e9ee; }
-  .card img { border-color: #333a45; }
-  .note { background: #2a2417; border-color: #6b5a32; }
-  .chip.passed { background: #173322; border-color: #2f6b44; color: #a7e0b8; }
-  .chip.failed { background: #3a1b17; border-color: #7a3a33; color: #f3b8b0; }
-  a { color: #7cb0f0; }
-}
-"""
+""".replace("__MONO__", _MONO)
 
 
 def render_results_page(
@@ -170,70 +202,74 @@ def render_results_page(
 
 def _page(result: "GenerationResult", form: forms.ParsedForm | None) -> str:
     """Build the page text without the size check."""
-    summary = _summary_table(result, form)
-    checks = _checks_table(result)
-    accepted = _accepted_section(result)
-    rejected = _rejected_section(result)
-    download = _download_section(form)
-    return f"""<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>TaskFactory results</title>
-<style>{_STYLE}</style>
-</head>
-<body>
-<main>
-<h1>TaskFactory results</h1>
-<p class="lead">One generation of chart questions: each task below shows its chart, question, exact answer and all seven checks.</p>
-
-<h2>Run summary</h2>
-{summary}
-
-<h2>Seven checks</h2>
-{checks}
-
-<h2>Accepted tasks</h2>
-{accepted}
-
-{rejected}
-{download}
-
-<p class="foot"><a href="/">Back to the form</a></p>
-</main>
-</body>
-</html>
-"""
+    body = f"""<style>{_STYLE}</style>
+{_breadcrumb()}
+<header class="page-head">
+<h1>Results</h1>
+<p class="page-lead">TaskFactory results for your settings: every chart below carries its question, exact answer and all seven checks.</p>
+</header>
+{_summary_band(result, form)}
+{_planned_note(result, form)}
+{_checks_card(result)}
+{_accepted_section(result)}
+{_rejected_section(result)}"""
+    return page_shell("Results", body)
 
 
-def _summary_table(result: "GenerationResult", form: forms.ParsedForm | None) -> str:
-    """The run summary table, with attempted shown as the main count."""
-    rows = [
-        ("Run id", f"<code>{escape(result.run_id)}</code>"),
-        ("Commit", f"<code>{escape(result.commit)}</code>"),
-        ("Seed", escape(str(result.seed))),
-        (
-            "Attempted",
-            f'<strong>{escape(str(result.attempted))}</strong> tasks attempted',
-        ),
-        ("Accepted", escape(str(result.accepted))),
-        ("Rejected", escape(str(result.rejected))),
-        ("Yield", escape(f"{result.yield_ * 100:.1f}%")),
-        ("Elapsed", escape(f"{result.elapsed_seconds:.1f} s")),
-    ]
-    body = []
-    for label, value in rows:
-        row_class = ' class="main-count"' if label == "Attempted" else ""
-        body.append(f"<tr{row_class}><th>{escape(label)}</th><td>{value}</td></tr>")
+def _breadcrumb() -> str:
+    """Home icon-link to the form, then the current Results label."""
+    return f"""<nav class="breadcrumb" aria-label="Breadcrumb">
+<a href="/">{_ICONS["home"]}<span>Home</span></a>
+<span class="breadcrumb-sep" aria-hidden="true">/</span>
+<span aria-current="page">Results</span>
+</nav>"""
 
-    planned_note = _planned_note(result, form)
-    return (
-        '<table class="summary">\n<tbody>\n'
-        + "\n".join(body)
-        + "\n</tbody>\n</table>\n"
-        + planned_note
-    )
+
+def _summary_band(result: "GenerationResult", form: forms.ParsedForm | None) -> str:
+    """The four stat tiles, the run line, the full commit and the two actions."""
+    rate = min(max(result.yield_ * 100, 0.0), 100.0)
+    rate_text = f"{rate:.1f}"
+    elapsed = f"{result.elapsed_seconds:.1f} s"
+    return f"""<section class="card results-band" aria-labelledby="summary-heading">
+<div class="card-header">
+<h2 class="card-title" id="summary-heading">{ICONS["file-text"]}<span>Run summary</span></h2>
+<p class="card-description">Totals for this run. The ZIP holds the same charts and files.</p>
+</div>
+<div class="card-content">
+<div class="stat-tiles">
+{_stat_tile("list-checks", "Attempted", str(result.attempted))}
+{_stat_tile("check-circle", "Accepted", str(result.accepted))}
+{_stat_tile("x-circle", "Rejected", str(result.rejected))}
+<div class="stat-tile">
+<p class="stat-label">{ICONS["gauge"]}<span>Yield</span></p>
+<p class="stat-value">{escape(rate_text)}%</p>
+<div class="meter meter-yield" role="progressbar" aria-label="Yield" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{escape(rate_text)}"><span class="meter-fill" style="width:{escape(rate_text)}%"></span></div>
+</div>
+</div>
+<p class="run-meta">
+<span><span class="meta-label">Run</span> <code>{escape(result.run_id)}</code></span>
+<span><span class="meta-label">Seed</span> <strong>{escape(str(result.seed))}</strong></span>
+<span><span class="meta-label">Elapsed</span> <strong>{escape(elapsed)}</strong></span>
+<span class="badge badge-muted">Commit {escape(result.commit[:7])}</span>
+</p>
+<details class="commit-details">
+<summary>Full commit</summary>
+<p><code>{escape(result.commit)}</code></p>
+</details>
+<div class="band-actions">
+{_download_form(form)}
+<a class="btn btn-outline" href="/">{ICONS["arrow-left"]}<span>Back to the form</span></a>
+</div>
+</div>
+</section>"""
+
+
+def _stat_tile(icon: str, label: str, value: str) -> str:
+    """One small labelled total with a shared icon."""
+    return f"""<div class="stat-tile">
+<p class="stat-label">{ICONS[icon]}<span>{escape(label)}</span></p>
+<p class="stat-value">{escape(value)}</p>
+</div>"""
 
 
 def _planned_note(result: "GenerationResult", form: forms.ParsedForm | None) -> str:
@@ -250,38 +286,85 @@ def _planned_note(result: "GenerationResult", form: forms.ParsedForm | None) -> 
         f"{result.attempted} because some question types are skipped by the "
         "margin rule at this seed."
     )
-    return f'<p class="note">{escape(text)}</p>\n'
+    return (
+        f'<div class="alert alert-info" role="status">{ICONS["info"]}'
+        f"<p>{escape(text)}</p></div>"
+    )
 
 
-def _checks_table(result: "GenerationResult") -> str:
-    """One row per check name: how many attempted tasks passed it."""
-    passed = dict.fromkeys(CHECK_NAMES, 0)
-    for task in _all_tasks(result):
-        for name, outcome in _check_outcomes(task).items():
-            if outcome and name in passed:
-                passed[name] += 1
+def _checks_card(result: "GenerationResult") -> str:
+    """One row per check: its plain name, its id and a bar of passes."""
+    passed = _check_totals(result)
+    rows = []
+    for name in CHECK_NAMES:
+        count = passed[name]
+        label = _plain_name(name)
+        rows.append(
+            f"""<li class="check-row">
+<div class="check-line">
+<span class="check-name">{escape(label)} <code class="check-code">{escape(name)}</code></span>
+<span class="check-score">{escape(str(count))} of {escape(str(result.attempted))}</span>
+</div>
+<div class="meter" role="progressbar" aria-label="{escape(label)} passed" aria-valuemin="0" aria-valuemax="{escape(str(result.attempted))}" aria-valuenow="{escape(str(count))}"><span class="meter-fill" style="width:{_width(count, result.attempted)}"></span></div>
+</li>"""
+        )
+    rows_html = "\n".join(rows)
+    warning = _accepted_failure_alert(result)
+    return f"""<section class="card results-section checks-card" aria-labelledby="checks-heading">
+<div class="card-header">
+<h2 class="card-title" id="checks-heading">{ICONS["list-checks"]}<span>Seven checks</span></h2>
+<p class="card-description">How many attempted tasks passed each check.</p>
+</div>
+<div class="card-content">
+<ul class="check-list">
+{rows_html}
+</ul>
+{warning}
+</div>
+</section>"""
 
-    rows = "".join(
-        "<tr>"
-        f"<td><code>{escape(name)}</code></td>"
-        f"<td>{escape(str(passed[name]))} of {escape(str(result.attempted))} tasks</td>"
-        "</tr>"
-        for name in CHECK_NAMES
+
+def _accepted_failure_alert(result: "GenerationResult") -> str:
+    """A warning only when an accepted task somehow failed a check."""
+    failures = []
+    for task in result.accepted_tasks:
+        names = [_plain_name(check.name) for check in task.checks if not check.passed]
+        if names:
+            failures.append(f"{task.task_id} ({', '.join(names)})")
+    if not failures:
+        return ""
+    text = (
+        "An accepted task failed a check: "
+        + "; ".join(failures)
+        + ". This should not happen; the task is still listed below."
     )
     return (
-        "<table>\n"
-        "<thead><tr><th>Check</th><th>Passed</th></tr></thead>\n"
-        f"<tbody>{rows}</tbody>\n</table>"
+        f'<div class="alert alert-warning" role="alert">{ICONS["alert-triangle"]}'
+        f"<p>{escape(text)}</p></div>"
     )
 
 
 def _accepted_section(result: "GenerationResult") -> str:
-    """One card per accepted task, in task-id order."""
+    """The accepted heading with its count, then the responsive task grid."""
     tasks = sorted(result.accepted_tasks, key=lambda task: task.task_id)
-    if not tasks:
-        return '<p class="empty">No tasks were accepted.</p>'
-    cards = "\n".join(_accepted_card(task, result.artifacts) for task in tasks)
-    return f'<ul class="cards">\n{cards}\n</ul>'
+    heading = (
+        '<div class="section-head">'
+        f'<h2 id="accepted-heading">Accepted tasks <span class="badge badge-success">{escape(str(len(tasks)))}</span></h2>'
+        "</div>"
+    )
+    if tasks:
+        cards = "\n".join(_accepted_card(task, result.artifacts) for task in tasks)
+        body = f'<ul class="task-grid">\n{cards}\n</ul>'
+    else:
+        body = f"""<div class="card empty-state">
+<div class="card-content">
+<p class="empty-line">{ICONS["info"]}<span>{escape(EMPTY_ACCEPTED_MESSAGE)}</span></p>
+</div>
+</div>"""
+    return (
+        '<section class="results-section" aria-labelledby="accepted-heading">\n'
+        f"{heading}\n{body}\n</section>"
+    )
 
 
 def _rejected_section(result: "GenerationResult") -> str:
@@ -290,70 +373,108 @@ def _rejected_section(result: "GenerationResult") -> str:
     if not tasks:
         return ""
     cards = "\n".join(_rejected_card(task, result.artifacts) for task in tasks)
-    return f'<h2>Rejected tasks</h2>\n<ul class="cards">\n{cards}\n</ul>'
+    heading = (
+        '<div class="section-head">'
+        f'<h2 id="rejected-heading">Rejected tasks <span class="badge badge-destructive">{escape(str(len(tasks)))}</span></h2>'
+        "</div>"
+    )
+    return (
+        '<section class="results-section" aria-labelledby="rejected-heading">\n'
+        f'{heading}\n<ul class="task-grid">\n{cards}\n</ul>\n</section>'
+    )
 
 
 def _accepted_card(task: "TaskSummary", artifacts: Mapping[str, bytes]) -> str:
-    """One accepted task: chart, question, answer, fields and seven chips."""
+    """One accepted task: image, question, exact answer, badges and seven chips."""
     payload = _task_payload(artifacts, "tasks", task.task_id)
     question = _text(payload.get("question"))
     answer = _text(payload.get("answer"))
-    image = _image_tag(artifacts.get(f"tasks/{task.task_id}/image.png"), task.task_id)
-    chips = _chips(task)
+    image = _image_tag(
+        artifacts.get(f"tasks/{task.task_id}/image.png"),
+        task.task_id,
+        question,
+    )
+    media = f'<div class="task-media">{image}</div>' if image else ""
     checks = f"{task.passed_checks} of {task.total_checks} checks passed"
-    return f"""<li class="card">
-<div class="card-head"><h3><code>{escape(task.task_id)}</code></h3></div>
-{image}
-<p class="question"><strong>Question:</strong> {escape(question)}</p>
-<p class="answer"><strong>Exact answer:</strong> {escape(answer)}</p>
-<dl class="meta">
-<div><dt>Question type</dt><dd>{escape(task.question_type)}</dd></div>
-<div><dt>Domain</dt><dd>{escape(task.domain)}</dd></div>
-<div><dt>Family</dt><dd>{escape(task.family)}</dd></div>
-</dl>
-<p class="checks-summary">{escape(checks)}</p>
-<ul class="chips">{chips}</ul>
+    return f"""<li class="card task-card">
+{media}
+<div class="task-body">
+<h3 class="task-title"><code>{escape(task.task_id)}</code></h3>
+<p class="task-question">{escape(question)}</p>
+<div class="answer-box">
+{_ICONS["check"]}
+<div>
+<span class="answer-label">Exact answer</span>
+<p class="answer-value">{escape(answer)}</p>
+</div>
+</div>
+<ul class="task-badges" aria-label="Task attributes">
+<li class="badge badge-muted">{escape(task.family)}</li>
+<li class="badge badge-muted">{escape(task.question_type)}</li>
+<li class="badge badge-muted">{escape(task.domain)}</li>
+</ul>
+<p class="task-checks">{escape(checks)}</p>
+<ul class="check-chips" aria-label="Seven checks">
+{_chips(task)}
+</ul>
+</div>
 </li>"""
 
 
 def _rejected_card(task: "TaskSummary", artifacts: Mapping[str, bytes]) -> str:
-    """One rejected task: chart, failed check names and their reasons."""
+    """One rejected task: muted chart, failed check badges and the reasons."""
+    payload = _task_payload(artifacts, "rejected", task.task_id)
+    question = _text(payload.get("question"))
     image = _image_tag(
-        artifacts.get(f"rejected/{task.task_id}/image.png"), task.task_id
+        artifacts.get(f"rejected/{task.task_id}/image.png"),
+        task.task_id,
+        question,
     )
+    media = f'<div class="task-media">{image}</div>' if image else ""
     failed = task.failed_checks
-    names = ", ".join(failed) if failed else "unknown"
+    badges = "".join(
+        f'<li class="badge badge-destructive">{_ICONS["x"]}'
+        f"<span>{escape(_plain_name(name))}</span></li>"
+        for name in failed
+    )
+    if not badges:
+        badges = '<li class="badge badge-destructive">Unknown</li>'
+    return f"""<li class="card task-card rejected-card">
+{media}
+<div class="task-body">
+<h3 class="task-title"><code>{escape(task.task_id)}</code></h3>
+<ul class="task-badges" aria-label="Failed checks">{badges}</ul>
+{_reason_alert(task)}
+</div>
+</li>"""
+
+
+def _reason_alert(task: "TaskSummary") -> str:
+    """Every failed check's reason in one destructive alert."""
     items = []
     for check in task.checks:
         if check.passed:
             continue
-        reason = check.reason if check.reason else "no reason recorded"
+        reason = check.reason if check.reason else "No reason recorded."
         items.append(
-            "<li>"
-            f"<code>{escape(check.name)}</code>: {escape(reason)}"
-            "</li>"
+            f"<li><strong>{escape(_plain_name(check.name))}</strong>: "
+            f"{escape(reason)}</li>"
         )
     if not items:
-        items.append("<li>no reason recorded</li>")
-    return f"""<li class="card rejected">
-<div class="card-head"><h3><code>{escape(task.task_id)}</code></h3></div>
-{image}
-<p><strong>Failed checks:</strong> {escape(names)}</p>
-<ul class="failures">{"".join(items)}</ul>
-</li>"""
+        items.append("<li>No reason recorded.</li>")
+    return f"""<div class="alert alert-destructive" role="alert">
+{ICONS["alert-triangle"]}
+<div class="alert-text"><ul class="reason-list">{"".join(items)}</ul></div>
+</div>"""
 
 
-def _download_section(form: forms.ParsedForm | None) -> str:
+def _download_form(form: forms.ParsedForm | None) -> str:
     """The ZIP form, reposting the canonical form fields as hidden inputs."""
     hidden = _hidden_fields(form)
-    return f"""<section class="download">
-<h2>Download</h2>
-<p>The ZIP holds the same pictures and files plus the indices, metrics and run details.</p>
-<form method="post" action="/api/zip">
+    return f"""<form method="post" action="/api/zip">
 {hidden}
-<button type="submit">Download ZIP</button>
-</form>
-</section>"""
+<button class="btn btn-primary" type="submit">{_ICONS["download"]}<span>Download ZIP</span></button>
+</form>"""
 
 
 def _hidden_fields(form: forms.ParsedForm | None) -> str:
@@ -375,22 +496,39 @@ def _hidden_fields(form: forms.ParsedForm | None) -> str:
 
 def _hidden(name: str, value: str) -> str:
     """One hidden input with both attributes escaped."""
-    return (
-        f'<input type="hidden" name="{escape(name)}" value="{escape(value)}">'
-    )
+    return f'<input type="hidden" name="{escape(name)}" value="{escape(value)}">'
 
 
 def _chips(task: "TaskSummary") -> str:
-    """One passed/failed chip for every one of the seven checks."""
+    """One pass/fail chip for every one of the seven checks."""
     outcomes = _check_outcomes(task)
     chips = []
     for name in CHECK_NAMES:
         passed = outcomes.get(name, False)
-        state = "passed" if passed else "failed"
-        chips.append(
-            f'<li class="chip {state}">{escape(name)} {state}</li>'
-        )
-    return "".join(chips)
+        label = _plain_name(name)
+        if passed:
+            chips.append(
+                f'<li class="badge badge-success">{_ICONS["check"]}'
+                f'<span>{escape(label)}</span>'
+                '<span class="visually-hidden"> passed</span></li>'
+            )
+        else:
+            chips.append(
+                f'<li class="badge badge-destructive">{_ICONS["x"]}'
+                f'<span>{escape(label)}</span>'
+                '<span class="visually-hidden"> failed</span></li>'
+            )
+    return "\n".join(chips)
+
+
+def _check_totals(result: "GenerationResult") -> dict[str, int]:
+    """How many attempted tasks passed each of the seven named checks."""
+    passed = dict.fromkeys(CHECK_NAMES, 0)
+    for task in _all_tasks(result):
+        for name, outcome in _check_outcomes(task).items():
+            if outcome and name in passed:
+                passed[name] += 1
+    return passed
 
 
 def _check_outcomes(task: "TaskSummary") -> dict[str, bool]:
@@ -400,6 +538,19 @@ def _check_outcomes(task: "TaskSummary") -> dict[str, bool]:
         name = _CHECK_ALIASES.get(check.name, check.name)
         outcomes[name] = bool(check.passed)
     return outcomes
+
+
+def _plain_name(name: str) -> str:
+    """The plain English label for a check, or the raw name when it is unknown."""
+    return CHECK_LABELS.get(_CHECK_ALIASES.get(name, name), name)
+
+
+def _width(part: int, whole: int) -> str:
+    """A CSS percentage for a bar, clamped to the 0..100 range."""
+    if whole <= 0:
+        return "0%"
+    percent = min(max(part / whole * 100, 0.0), 100.0)
+    return f"{percent:.1f}%"
 
 
 def _all_tasks(result: "GenerationResult") -> tuple["TaskSummary", ...]:
@@ -421,14 +572,19 @@ def _task_payload(
     return payload if isinstance(payload, dict) else {}
 
 
-def _image_tag(data: bytes | None, task_id: str) -> str:
-    """A PNG data URI in an image tag, or nothing when the artifact is absent."""
+def _image_tag(data: bytes | None, task_id: str, question: str) -> str:
+    """A PNG data URI in an image tag, or nothing when the artifact is absent.
+
+    The alt text is the task question, so a screen reader hears the same text
+    the card shows. A missing question falls back to the task id.
+    """
     if not data:
         return ""
     encoded = base64.b64encode(data).decode("ascii")
+    alt = question.strip() or f"Chart for {task_id}"
     return (
         f'<img src="data:image/png;base64,{encoded}" '
-        f'alt="Chart for {escape(task_id)}">'
+        f'alt="{escape(alt)}" loading="lazy">'
     )
 
 
