@@ -12,6 +12,7 @@ import taskfactory.cli as cli
 from taskfactory import __version__
 from taskfactory.web import forms
 from taskfactory.web.app import application
+from taskfactory.web.render_page import COLD_START_MESSAGE
 
 INPUT_NAMES = (
     "seed",
@@ -59,6 +60,37 @@ def test_index_page() -> None:
     assert "api key" not in lowered
     assert "gemini" not in lowered
     assert "openrouter" not in lowered
+
+
+def test_index_shows_the_default_task_count() -> None:
+    status, _, body = call("GET", "/")
+    page = body.decode("utf-8")
+
+    assert status == 200
+    assert "About 15 tasks" in page
+    assert forms.default_task_count() == 15
+
+
+def test_index_task_count_comes_from_the_form(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setitem(forms.FORM_DEFAULTS, "charts_per_type", 2)
+
+    status, _, body = call("GET", "/")
+    page = body.decode("utf-8")
+
+    assert status == 200
+    assert "About 10 tasks" in page
+    assert "About 15 tasks" not in page
+
+
+def test_index_shows_the_cold_start_note() -> None:
+    status, _, body = call("GET", "/")
+    page = body.decode("utf-8")
+
+    assert status == 200
+    assert COLD_START_MESSAGE in page
+    assert "Starting the demo." in page
 
 
 def test_health() -> None:

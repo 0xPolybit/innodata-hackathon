@@ -6,6 +6,8 @@ import io
 import os
 import shutil
 import tempfile
+import threading
+import time
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlencode
@@ -20,9 +22,13 @@ from taskfactory.web.build_config import DIFFICULTY_SETTINGS, build_config, cano
 from taskfactory.web.generate import (
     BUSY_MESSAGE,
     FAILED_MESSAGE,
+    OUT_OF_MEMORY_MESSAGE,
+    QUOTA_MESSAGE,
+    TIMEOUT_MESSAGE,
     CheckOutcome,
     GenerationBusy,
     GenerationFailed,
+    GenerationQuotaExceeded,
     GenerationResult,
     TaskSummary,
     generate,
@@ -380,6 +386,94 @@ def test_generation_lock_is_exclusive() -> None:
     assert "minute" in str(error.value)
 
 
+def test_generation_times_out_and_keeps_the_lock_until_the_worker_ends(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    parsed = forms.parse_form(forms.default_form_payload())
+    release = threading.Event()
+
+    def slow(*args: Any, **kwargs: Any) -> dict[str, Any]:
+        release.wait(5)
+        return {"generated": 0, "passed": 0, "rejected": 0, "yield": 0.0}
+
+    monkeypatch.setattr(generate_module, "run_pipeline", slow)
+    monkeypatch.setattr(generate_module, "TIMEOUT_SECONDS", 0.05)
+
+    try:
+        with pytest.raises(GenerationFailed) as error:
+            generate(parsed)
+        assert str(error.value) == TIMEOUT_MESSAGE
+        assert "300 second limit" in str(error.value)
+
+        # The worker is still running and cannot be killed, so it still owns
+        # the process-wide lock.
+        with pytest.raises(GenerationBusy):
+            generate(parsed)
+    finally:
+        release.set()
+
+    deadline = time.monotonic() + 10
+    while not generate_module.GENERATION_LOCK.acquire(blocking=False):
+        assert time.monotonic() < deadline, "worker never released the lock"
+        time.sleep(0.01)
+    generate_module.GENERATION_LOCK.release()
+
+
+def test_generation_out_of_memory_uses_the_section_9_message(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    parsed = forms.parse_form(forms.default_form_payload())
+
+    def out_of_memory(*args: Any, **kwargs: Any) -> None:
+        raise MemoryError
+
+    monkeypatch.setattr(generate_module, "run_pipeline", out_of_memory)
+
+    with pytest.raises(GenerationFailed) as error:
+        generate(parsed)
+
+    assert str(error.value) == OUT_OF_MEMORY_MESSAGE
+
+
+def test_forced_failure_prints_only_the_class_and_run_id(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    secret = "env-secret-value-123"
+    payload = _payload(seed="123456789")
+    parsed = forms.parse_form(payload)
+    monkeypatch.setenv("GEMINI_API_KEY", secret)
+
+    def fail(*args: Any, **kwargs: Any) -> None:
+        raise RuntimeError(f"used {secret} with seed {payload['seed']}")
+
+    monkeypatch.setattr("taskfactory.pipeline.run_pipeline", fail)
+
+    with pytest.raises(GenerationFailed):
+        generate(parsed)
+
+    err = capsys.readouterr().err
+    expected = f"taskfactory web: RuntimeError run={build_config(parsed).run_id}"
+    assert [line for line in err.splitlines() if line] == [expected]
+    assert secret not in err
+    assert str(payload["seed"]) not in err
+
+
+def test_generation_quota_error_shows_the_section_9_message(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def quota(form: forms.ParsedForm) -> None:
+        raise GenerationQuotaExceeded(QUOTA_MESSAGE)
+
+    monkeypatch.setattr(web_app, "generate", quota)
+    status, _, body = _call("POST", "/api/generate", _form_body())
+    page = body.decode("utf-8")
+
+    assert status == 503
+    assert QUOTA_MESSAGE in page
+    assert "Traceback" not in page
+
+
 def test_generation_cleans_up_after_failure(
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
@@ -405,7 +499,11 @@ def test_generation_cleans_up_after_failure(
     assert str(error.value) == FAILED_MESSAGE
     temp_dirs = [path for path in created if path.name.startswith("tf-")]
     assert temp_dirs and not temp_dirs[0].exists()
-    assert "Traceback" in capsys.readouterr().err
+    err = capsys.readouterr().err
+    assert "RuntimeError" in err
+    assert "run=ui-" in err
+    assert "Traceback" not in err
+    assert "pipeline exploded" not in err
 
 
 def test_post_bad_seed_returns_400() -> None:
@@ -461,6 +559,113 @@ def test_post_too_large_returns_413() -> None:
     assert headers["Content-Type"].startswith("text/html")
     assert web_app.TOO_LARGE_MESSAGE in page
     assert 'href="/"' in page
+
+
+def test_post_repeated_scalar_field_returns_400() -> None:
+    status, _, body = _call(
+        "POST", "/api/generate", _form_body() + b"&seed=20261207"
+    )
+    page = body.decode("utf-8")
+
+    assert status == 400
+    assert forms.REPEATED_FIELD_MESSAGE in page
+    assert 'href="/"' in page
+    assert "Traceback" not in page
+
+
+def test_post_unknown_field_returns_400() -> None:
+    status, _, body = _call("POST", "/api/generate", _form_body(unexpected="1"))
+    page = body.decode("utf-8")
+
+    assert status == 400
+    assert forms.UNKNOWN_FIELD_MESSAGE in page
+    assert "Traceback" not in page
+
+
+def test_post_long_value_returns_400() -> None:
+    status, _, body = _call(
+        "POST", "/api/generate", _form_body(topic="x" * 201)
+    )
+    page = body.decode("utf-8")
+
+    assert status == 400
+    assert forms.LONG_VALUE_MESSAGE in page
+    assert "Traceback" not in page
+
+
+def test_parse_form_seed_keeps_accepting_a_leading_plus_and_spaces() -> None:
+    # Section 3 of the plan gives a range, not a syntax rule, and says nothing
+    # about a leading plus or spaces, so the existing behaviour is kept.
+    assert forms.parse_form(_payload(seed=" +20261206 ")).seed == 20261206
+    assert forms.parse_form(_payload(seed="+7")).seed == 7
+
+
+FORBIDDEN_KEY_TEXT = (
+    "GEMINI_API_KEY",
+    "OPENROUTER_API_KEY",
+    "AIza",
+    "sk-or-",
+    "api_key",
+)
+
+
+def _assert_no_key_text(body: bytes, label: str) -> None:
+    """No response body may carry a key name, a key prefix or ``api_key``."""
+    text = body.decode("utf-8", "replace").lower()
+    for token in FORBIDDEN_KEY_TEXT:
+        assert token.lower() not in text, f"{label} contains {token}"
+
+
+def test_every_response_body_is_free_of_key_text(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    labelled_bodies: list[tuple[str, bytes]] = []
+
+    for path, expected in (
+        ("/", 200),
+        ("/about", 200),
+        ("/sample/", 200),
+        ("/missing", 404),
+    ):
+        status, _, body = _call("GET", path)
+        assert status == expected, path
+        labelled_bodies.append((f"GET {path}", body))
+
+    status, _, body = _call("GET", "/api/generate")
+    assert status == 405
+    labelled_bodies.append(("GET /api/generate 405", body))
+
+    status, _, body = _call("POST", "/api/generate", _form_body(seed="abc"))
+    assert status == 400
+    labelled_bodies.append(("POST bad input 400", body))
+
+    status, _, body = _call("POST", "/api/generate", b"x" * 4097)
+    assert status == 413
+    labelled_bodies.append(("POST /api/generate 413", body))
+
+    monkeypatch.setattr(web_app, "generate", lambda form: _fake_result())
+    status, _, body = _call("POST", "/api/generate", _form_body())
+    assert status == 200
+    labelled_bodies.append(("POST /api/generate 200", body))
+
+    def busy(form: forms.ParsedForm) -> None:
+        raise GenerationBusy(BUSY_MESSAGE)
+
+    monkeypatch.setattr(web_app, "generate", busy)
+    status, _, body = _call("POST", "/api/generate", _form_body())
+    assert status == 503
+    labelled_bodies.append(("POST /api/generate 503", body))
+
+    def fail(form: forms.ParsedForm) -> None:
+        raise GenerationFailed(FAILED_MESSAGE)
+
+    monkeypatch.setattr(web_app, "generate", fail)
+    status, _, body = _call("POST", "/api/generate", _form_body())
+    assert status == 500
+    labelled_bodies.append(("POST /api/generate 500", body))
+
+    for label, page in labelled_bodies:
+        _assert_no_key_text(page, label)
 
 
 def test_get_generate_is_not_allowed() -> None:

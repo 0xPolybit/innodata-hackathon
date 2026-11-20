@@ -13,9 +13,14 @@ Only one generation runs in a process at a time: the process-wide
 :class:`GenerationBusy` straight away.
 
 Failure messages are the ones in docs/IMPLEMENTATION_PLAN.md section 9. An
-unexpected exception writes its traceback to stderr and raises
-:class:`GenerationFailed` with the generic message, so a traceback is never
-shown to the user.
+unexpected exception writes only its class name and the run id to stderr and
+raises :class:`GenerationFailed` with the generic message, so neither a
+traceback nor a request value is ever shown to the user.
+
+One generation runs on a worker thread. The request thread waits
+:data:`TIMEOUT_SECONDS`; if the run is still going it returns the timeout
+message and marks the run as discarded. Python cannot kill a thread, so the
+worker keeps the process-wide lock until it finishes and cleans up.
 """
 
 from __future__ import annotations
@@ -29,7 +34,6 @@ import sys
 import tempfile
 import threading
 import time
-import traceback
 from collections.abc import Iterator, Mapping
 from contextlib import contextmanager
 from dataclasses import dataclass, field
@@ -45,14 +49,18 @@ __all__ = [
     "GENERATION_LOCK",
     "MAX_ARTIFACT_BYTES",
     "OUT_OF_MEMORY_MESSAGE",
+    "QUOTA_MESSAGE",
     "RESULT_TOO_LARGE_MESSAGE",
     "TIMEOUT_MESSAGE",
+    "TIMEOUT_SECONDS",
     "CheckOutcome",
     "GenerationBusy",
     "GenerationFailed",
+    "GenerationQuotaExceeded",
     "GenerationResult",
     "TaskSummary",
     "generate",
+    "log_failure",
 ]
 
 BUSY_MESSAGE = "The generator is busy. Try again in a minute."
@@ -67,10 +75,19 @@ TIMEOUT_MESSAGE = (
 RESULT_TOO_LARGE_MESSAGE = (
     "The result is too large to send. Choose fewer charts, or open the sample report."
 )
+QUOTA_MESSAGE = (
+    "The free monthly compute limit for this demo is used up. Try again next "
+    "month, or run the app locally. The sample report is still available."
+)
 
 # The most artifact bytes a response may carry. The page and the ZIP both stay
 # under 4.5 MB, with room for the base64 image expansion on the page.
 MAX_ARTIFACT_BYTES = 3_500_000
+
+# The internal generation budget. The platform refuses a request at 300 seconds,
+# so the app stops waiting at 280 and keeps 20 seconds to send the timeout page.
+# The section 9 message still says 300: that is the user-facing platform limit.
+TIMEOUT_SECONDS = 280
 
 # Process-wide: generation renders with matplotlib and OCR and is not cheap
 # enough to run twice at once in the small hosted container.
@@ -94,6 +111,16 @@ class GenerationFailed(RuntimeError):
     def message(self) -> str:
         """The message to show, identical to ``str(error)``."""
         return str(self)
+
+
+class GenerationQuotaExceeded(GenerationFailed):
+    """A platform quota error, shown with :data:`QUOTA_MESSAGE`.
+
+    The app cannot read the Vercel compute quota, and nothing raises this today.
+    It is the one hook for a future platform signal: if the generator raises it,
+    the quota page is shown; otherwise Vercel's own error page is what a visitor
+    sees. The class is named in docs/DEPLOY.md.
+    """
 
 
 @dataclass(frozen=True)
@@ -169,6 +196,15 @@ class GenerationResult:
         return self.elapsed_seconds
 
 
+class _RunState:
+    """What the worker thread hands back to the thread waiting on it."""
+
+    def __init__(self) -> None:
+        self.result: GenerationResult | None = None
+        self.error: BaseException | None = None
+        self.discarded = False
+
+
 def generate(
     form: ParsedForm | Mapping[str, Any],
     *,
@@ -186,6 +222,11 @@ def generate(
     temporary folder is deleted and returns it on
     :attr:`GenerationResult.artifacts`; the folder is deleted either way.
 
+    The run happens on one worker thread. This thread waits
+    :data:`TIMEOUT_SECONDS` and then returns :data:`TIMEOUT_MESSAGE`, dropping
+    the worker's result; the worker keeps the lock until it has finished and
+    cleaned up, because Python cannot stop a thread.
+
     Raises :class:`GenerationBusy` when another call holds the lock and
     :class:`GenerationFailed` with a section 9 message when the run fails.
     A kept result over :data:`MAX_ARTIFACT_BYTES` raises
@@ -200,9 +241,69 @@ def generate(
         raise GenerationBusy(BUSY_MESSAGE)
 
     started = time.perf_counter()
+    state = _RunState()
+    worker = threading.Thread(
+        target=_run_worker,
+        args=(state, form, started, tesseract_cmd, repo_dir, keep_artifacts),
+        name="taskfactory-generate",
+        daemon=True,
+    )
+    try:
+        worker.start()
+    except BaseException:
+        GENERATION_LOCK.release()
+        raise
+
+    worker.join(TIMEOUT_SECONDS)
+    if worker.is_alive():
+        state.discarded = True
+        raise GenerationFailed(TIMEOUT_MESSAGE)
+    if state.error is not None:
+        raise state.error
+    if state.result is None:
+        raise GenerationFailed(FAILED_MESSAGE)
+    return state.result
+
+
+def _run_worker(
+    state: _RunState,
+    form: ParsedForm,
+    started: float,
+    tesseract_cmd: str | None,
+    repo_dir: Path | None,
+    keep_artifacts: bool,
+) -> None:
+    """Run one generation, hand its outcome back and release the lock.
+
+    The lock is released here, not in :func:`generate`, so a timed-out run
+    still blocks a second one until its pipeline and cleanup are done.
+    """
+    try:
+        result = _run_generation(
+            form, started, tesseract_cmd, repo_dir, keep_artifacts
+        )
+        if not state.discarded:
+            state.result = result
+    except BaseException as exc:  # handed to the waiting thread
+        if not state.discarded:
+            state.error = exc
+    finally:
+        GENERATION_LOCK.release()
+
+
+def _run_generation(
+    form: ParsedForm,
+    started: float,
+    tesseract_cmd: str | None,
+    repo_dir: Path | None,
+    keep_artifacts: bool,
+) -> GenerationResult:
+    """The generation itself: build, run, read back, clean up and map errors."""
     temp_root: Path | None = None
+    run_id = "unknown"
     try:
         built = build_config(form)
+        run_id = built.run_id
         commit = _commit_sha()
         root = Path(repo_dir) if repo_dir is not None else _project_root()
         temp_root = Path(tempfile.mkdtemp(prefix="tf-"))
@@ -246,17 +347,14 @@ def generate(
             raise GenerationFailed(TIMEOUT_MESSAGE) from exc
         if _is_out_of_memory(exc):
             raise GenerationFailed(OUT_OF_MEMORY_MESSAGE) from exc
-        _log_failure()
+        log_failure(exc, run_id)
         raise GenerationFailed(FAILED_MESSAGE) from exc
     except Exception as exc:  # any unexpected failure gets the generic message
-        _log_failure()
+        log_failure(exc, run_id)
         raise GenerationFailed(FAILED_MESSAGE) from exc
     finally:
-        try:
-            if temp_root is not None:
-                _remove_tree(temp_root)
-        finally:
-            GENERATION_LOCK.release()
+        if temp_root is not None:
+            _remove_tree(temp_root)
 
 
 def run_pipeline(*args: Any, **kwargs: Any) -> dict[str, Any]:
@@ -606,9 +704,14 @@ def _is_out_of_memory(exc: BaseException) -> bool:
     return isinstance(exc, OSError) and exc.errno == errno.ENOMEM
 
 
-def _log_failure() -> None:
-    """Write the current traceback to stderr; the response never shows it."""
-    traceback.print_exc(file=sys.stderr)
+def log_failure(exc: BaseException, run_id: str = "unknown") -> None:
+    """Write only the exception class name and the run id to stderr.
+
+    The exception message, the request body and every environment value stay
+    out of the log on purpose: a failure message can carry a key or a form
+    value, and neither may reach a log line.
+    """
+    print(f"taskfactory web: {type(exc).__name__} run={run_id}", file=sys.stderr)
 
 
 def _remove_tree(folder: Path) -> None:

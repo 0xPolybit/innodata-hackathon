@@ -3,11 +3,18 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
+from html import escape
 from typing import Any
 
-from taskfactory.web.forms import render_form_fields
+from taskfactory.web.forms import MAX_TASKS, default_task_count, render_form_fields
 
 REPO_URL = "https://github.com/0xPolybit/innodata-hackathon"
+
+# A note on the form, not an error: the container may need to boot before the
+# first request is answered. The 60 seconds is the plan's estimate.
+COLD_START_MESSAGE = (
+    "Starting the demo. The first request can take up to 60 seconds."
+)
 
 _STYLE = """
 :root { color-scheme: light dark; }
@@ -100,10 +107,12 @@ def render_page(values: Mapping[str, Any] | None = None) -> str:
 <main>
 <h1>TaskFactory</h1>
 <p class="intro">TaskFactory builds chart questions with exact answers, ready to check and use for benchmarking vision models.</p>
+<p class="hint">About {default_task_count()} tasks with these defaults. A choice above {MAX_TASKS} tasks is refused.</p>
 <form method="post" action="/api/generate">
 {fields}
 <button type="submit">Generate</button>
 </form>
+<p class="foot">{escape(COLD_START_MESSAGE)}</p>
 <p class="foot"><a href="{REPO_URL}">Sample report</a></p>
 </main>
 </body>

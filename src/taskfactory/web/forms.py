@@ -24,6 +24,10 @@ CHARTS_PER_TYPE_MIN = 1
 CHARTS_PER_TYPE_MAX = 6
 MAX_TASKS = 24
 
+# A submitted value longer than this is refused before it is parsed. It is a
+# hardening limit, not a form rule: every real value is far shorter.
+MAX_FIELD_VALUE_LENGTH = 200
+
 CHART_TYPES: dict[str, str] = {
     "bar": "Bar charts",
     "line": "Line charts",
@@ -66,6 +70,18 @@ FORM_DEFAULTS: dict[str, Any] = {
 SEED_MESSAGE = "Seed must be a whole number between 1 and 2147483647."
 CHARTS_MESSAGE = "Charts per type must be between 1 and 6."
 CHOICE_MESSAGE = "Pick at least one chart type and one question type."
+UNKNOWN_FIELD_MESSAGE = (
+    "The form sent a field it does not use. Reload the form and try again."
+)
+REPEATED_FIELD_MESSAGE = (
+    "The form sent a field more than once. Reload the form and try again."
+)
+LONG_VALUE_MESSAGE = "A form value is too long. Reload the form and try again."
+
+# Only these fields may appear more than once: the two checkbox groups, whose
+# hidden empty value is sent beside the checked values. Every other field is a
+# single choice, so a repeated one is a malformed request.
+_MULTI_FIELDS = frozenset({"chart_types", "question_types"})
 
 
 class FormError(ValueError):
@@ -137,6 +153,19 @@ def task_limit_message(count: int) -> str:
     )
 
 
+def default_task_count() -> int:
+    """The task count of the untouched form, from the same counter the form uses.
+
+    The form page shows this number, so the "About 15 tasks" sentence cannot
+    drift away from :func:`planned_task_count` when a default changes.
+    """
+    return planned_task_count(
+        FORM_DEFAULTS["chart_types"],
+        FORM_DEFAULTS["question_types"],
+        int(FORM_DEFAULTS["charts_per_type"]),
+    )
+
+
 def default_form_payload() -> dict[str, Any]:
     """The values a browser submits for the untouched default form."""
     return {
@@ -163,6 +192,8 @@ def parse_form(values: Mapping[str, Any]) -> ParsedForm:
     """
     if values is None:  # defensive: a WSGI app may pass an empty dict
         values = {}
+
+    _check_shape(values)
 
     seed = _parse_seed(_scalar(values, "seed"))
     charts_per_type = _parse_charts(_scalar(values, "charts_per_type"))
@@ -207,8 +238,30 @@ def parse_form(values: Mapping[str, Any]) -> ParsedForm:
     )
 
 
+def _check_shape(values: Mapping[str, Any]) -> None:
+    """Refuse a field the form does not use, a repeated single value or a long value.
+
+    A request is only ever the form's own fields. The two checkbox groups are
+    the one legitimate repeated field, because the form sends a hidden empty
+    value beside the checked values. This check runs before any value is parsed,
+    so a malformed request gets a plain message instead of a traceback.
+    """
+    for key, raw in values.items():
+        if key not in FORM_DEFAULTS:
+            raise FormError(UNKNOWN_FIELD_MESSAGE)
+        items = raw if isinstance(raw, (list, tuple)) else [raw]
+        if any(len(str(item)) > MAX_FIELD_VALUE_LENGTH for item in items):
+            raise FormError(LONG_VALUE_MESSAGE)
+        if key not in _MULTI_FIELDS and isinstance(raw, (list, tuple)) and len(raw) > 1:
+            raise FormError(REPEATED_FIELD_MESSAGE)
+
+
 def _parse_seed(raw: Any) -> int:
-    """A whole number from the seed range, or the seed error message."""
+    """A whole number from the seed range, or the seed error message.
+
+    ``int`` accepts a leading plus and surrounding spaces, and section 3 of the
+    plan does not forbid them, so they keep working as they always have.
+    """
     if raw is None:
         return int(FORM_DEFAULTS["seed"])
     try:

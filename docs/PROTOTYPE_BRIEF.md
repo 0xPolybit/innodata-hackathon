@@ -4,7 +4,7 @@ Status: working prototype, 2026-11-20. Repo: https://github.com/0xPolybit/innoda
 
 ## What it is
 
-A factory that makes chart questions with known answers, checks each one without an AI model, and scores free vision models on a fixed set of items. The output is a static HTML report.
+A factory that makes chart questions with known answers, checks each one without an AI model, and scores free vision models on a fixed set of items. The output is a static HTML report, and a web app runs the same generator locally or in a container.
 
 ## What works now
 
@@ -16,9 +16,13 @@ A factory that makes chart questions with known answers, checks each one without
 | Self-test of the checks with planted defects | 20 of 20 clean packages pass; every planted defect class is caught in full and content-only modes |
 | Benchmark on free models with cache and retries | Gemini 3.1 Flash-Lite 97.5% and Gemini 3.5 Flash-Lite 95.5% on the 200-item set |
 | Static HTML report | Opens from a local file; no scripts, no external links |
-| Test suite | 544 tests, no API keys needed |
+| Web app, local and hosted | `tf serve` and the container serve the same form at `/`, the results page, the ZIP and the status routes. No key field, no model call |
+| Container, measured on 20 November 2026 | 841 MB image on a pinned `python:3.13-slim` base with Tesseract 5.5.0 |
+| Local gate at the same check | Exit 0: 14 attempted, 14 accepted, 0 rejected, every task 7/7; 968,203-byte response in 9.6 seconds |
+| Sample site | `/about` is the landing page and `/sample/` is the committed static report |
+| Test suite | Full suite passes with no API keys needed |
 
-Not built: floor plans, the `generate`, `validate`, `score` and `diff` commands, and offline replay from files.
+Not built: floor plans, the `generate`, `validate` and `score` commands, and offline replay from files.
 
 ## Technology list (all free)
 
@@ -38,7 +42,7 @@ Not built: floor plans, the `generate`, `validate`, `score` and `diff` commands,
 | OBS Studio | Demo video | Free | No |
 | Google Slides | Deck, on the required template | Free | No |
 
-No database, hosting service, cloud runtime or paid API is used. Nothing in the project asks for payment details.
+No database or paid API is used. Hosting is Vercel's free Hobby plan, with no billing details; the model benchmark stays local. Nothing in the project asks for payment details.
 
 ## Cost
 
@@ -61,6 +65,13 @@ See the Quick start in `README.md`. The short path:
 - The two Gemini models have full results on the 200 items. The OpenRouter model is partial because of its daily cap.
 - The standard set cannot separate the two Gemini models: their 95% intervals overlap (94.3 to 98.9 and 91.7 to 97.6).
 - The harder tiers are only a little harder for the models, and the hardest tier (12 bars, 81.6% yield) has been scored on 90 of its 200 items so far.
+- The default form plans 15 tasks; the pipeline attempts 14 at the default seed because the margin rule skips one. The cap is 24 tasks.
+- The platform stops a request at 300 seconds and the app's own budget is 280. A run that times out cannot be killed; it holds the one-generation lock until it ends.
+- The results page is capped at 4,000,000 bytes and kept artifacts at 3,500,000 bytes; the platform response limit is about 4.5 MB.
+- The free monthly allowance is 4 CPU-hours. The app cannot read it; Vercel's platform page reports exhaustion. There is no per-IP rate limiting.
+- A cold start can take up to 60 seconds according to the form note; this figure is unverified.
+- The Container runtime is in beta, and Hobby is for non-commercial use.
+- PNG bytes can differ across machines; the JSON files and run IDs stay deterministic.
 - The self-test has no `tf` command yet.
 - Human audit is not done.
 - Floor plans are not built.

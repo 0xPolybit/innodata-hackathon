@@ -9,7 +9,6 @@ import os
 import platform
 import re
 import subprocess
-import traceback
 from collections.abc import Callable, Iterable
 from pathlib import Path
 from typing import Any
@@ -19,10 +18,13 @@ from taskfactory import __version__
 from taskfactory.web.forms import FormError, ParsedForm, parse_form
 from taskfactory.web.generate import (
     FAILED_MESSAGE,
+    QUOTA_MESSAGE,
     GenerationBusy,
     GenerationFailed,
+    GenerationQuotaExceeded,
     GenerationResult,
     generate,
+    log_failure,
 )
 from taskfactory.web.render_page import render_page
 from taskfactory.web.results_page import render_results_page
@@ -232,8 +234,8 @@ def _zip_response(environ: dict[str, Any]) -> Response:
 
     try:
         data = build_zip(result.artifacts)
-    except Exception:  # never show a traceback
-        traceback.print_exc()
+    except Exception as exc:  # never show a traceback
+        log_failure(exc, result.run_id)
         return _html_response(
             "500 Internal Server Error",
             render_message("Generation failed", FAILED_MESSAGE),
@@ -267,7 +269,7 @@ def _run_form(environ: dict[str, Any]) -> tuple[ParsedForm, GenerationResult]:
             )
         ) from exc
     except OSError as exc:
-        traceback.print_exc()
+        log_failure(exc)
         raise _Respond(
             _html_response(
                 "500 Internal Server Error",
@@ -296,6 +298,15 @@ def _run_form(environ: dict[str, Any]) -> tuple[ParsedForm, GenerationResult]:
                 [("Retry-After", "60")],
             )
         ) from exc
+    except GenerationQuotaExceeded:
+        # Only a generator that raises this specific error shows the quota
+        # page; the app cannot read the platform's monthly quota itself.
+        raise _Respond(
+            _html_response(
+                "503 Service Unavailable",
+                render_message("Compute limit reached", QUOTA_MESSAGE),
+            )
+        ) from None
     except GenerationFailed as exc:
         raise _Respond(
             _html_response(
@@ -303,8 +314,8 @@ def _run_form(environ: dict[str, Any]) -> tuple[ParsedForm, GenerationResult]:
                 render_message("Generation failed", str(exc)),
             )
         ) from exc
-    except Exception:  # the last line of defence: never show a traceback
-        traceback.print_exc()
+    except Exception as exc:  # the last line of defence: never show a traceback
+        log_failure(exc)
         raise _Respond(
             _html_response(
                 "500 Internal Server Error",

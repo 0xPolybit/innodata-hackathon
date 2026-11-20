@@ -161,6 +161,30 @@ Expect `576 passed`. The suite needs no API keys and takes about three minutes.
 
 Look in `out\demo\tasks\` for the accepted packages, `out\demo\rejected\` for rejected ones, and `out\demo\metrics.json` for the counts.
 
+### Hosted demo
+
+Live demo: (add the Vercel URL after deploy)
+
+The hosted app opens the same form, generates the same tasks and serves the same
+sample report. It calls no AI model and has no key field.
+
+### Run the web app locally
+
+```powershell
+uv run tf serve
+```
+
+Open http://127.0.0.1:8000. Stop the server with Ctrl+C.
+
+The optional container path is the same image the hosted demo uses:
+
+```powershell
+docker build -t taskfactory:local .
+docker run --rm -p 8000:8000 -e PORT=8000 taskfactory:local
+```
+
+Then open http://127.0.0.1:8000 again.
+
 ---
 
 ## Usage
