@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import argparse
+import errno
 import json
+import socket
 import sys
 from collections.abc import Sequence
 from pathlib import Path
@@ -297,12 +299,41 @@ def _add_serve_command(subparsers: Any) -> None:
     serve.set_defaults(func=_serve_command)
 
 
+def _bind_error(host: str, port: int) -> OSError | None:
+    """Return the error a plain socket gets when binding to the host and port, or None."""
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as probe:
+        probe.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 0)
+        try:
+            probe.bind((host, port))
+        except OSError as exc:
+            return exc
+    return None
+
+
 def _serve_command(args: argparse.Namespace) -> int:
     """Handle ``tf serve``: check the host, then run Waitress until Ctrl+C."""
     if args.host not in {"127.0.0.1", "localhost"} and not args.allow_remote:
         print(
             f"tf serve: error: refusing to bind to {args.host!r}; "
             "use --allow-remote to serve other machines",
+            file=sys.stderr,
+        )
+        return 2
+
+    # Checked before Waitress imports the app, so a busy port fails fast and clearly.
+    error = _bind_error(args.host, args.port)
+    if error is not None:
+        in_use = {errno.EADDRINUSE, getattr(errno, "WSAEADDRINUSE", errno.EADDRINUSE)}
+        if error.errno in in_use:
+            print(
+                f"Port {args.port} is already in use by another program. "
+                "Run `uv run tf serve --port 8011` (or any free port), then open "
+                "http://127.0.0.1:<that port>.",
+                file=sys.stderr,
+            )
+            return 2
+        print(
+            f"Could not start the web app on {args.host}:{args.port}: {error}",
             file=sys.stderr,
         )
         return 2

@@ -176,6 +176,8 @@ uv run tf serve
 
 Open http://127.0.0.1:8000. Stop the server with Ctrl+C.
 
+If port 8000 is already used by another program, `tf serve` says so; use another port with `uv run tf serve --port 8011`.
+
 The optional container path is the same image the hosted demo uses:
 
 ```powershell

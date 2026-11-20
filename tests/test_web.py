@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import re
+import socket
 from typing import Any
 
 import pytest
@@ -177,3 +178,46 @@ def test_serve_refuses_remote_host_without_flag(
 
     assert cli.main(["serve", "--host", "0.0.0.0"]) == 2
     assert "--allow-remote" in capsys.readouterr().err
+
+
+def test_serve_reports_a_port_in_use(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    import waitress
+
+    def fail(*args: Any, **kwargs: Any) -> None:
+        raise AssertionError("waitress.serve must not be called")
+
+    monkeypatch.setattr(waitress, "serve", fail)
+
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as busy:
+        busy.bind(("127.0.0.1", 0))
+        port = busy.getsockname()[1]
+        assert cli.main(["serve", "--port", str(port)]) == 2
+
+    err = capsys.readouterr().err
+    assert "already in use" in err
+    assert str(port) in err
+
+
+def test_serve_binds_a_free_port(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    import waitress
+
+    calls: list[dict[str, Any]] = []
+
+    def noop(*args: Any, **kwargs: Any) -> None:
+        calls.append(kwargs)
+
+    monkeypatch.setattr(waitress, "serve", noop)
+
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as probe:
+        probe.bind(("127.0.0.1", 0))
+        port = probe.getsockname()[1]
+
+    assert cli.main(["serve", "--port", str(port)]) == 0
+    assert calls == [{"host": "127.0.0.1", "port": port}]
+    assert "TaskFactory is running" in capsys.readouterr().out
