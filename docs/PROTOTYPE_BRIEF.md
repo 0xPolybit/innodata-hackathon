@@ -60,13 +60,15 @@ See the Quick start in `README.md`. The short path:
 
 - Synthetic charts only, so the benchmark does not show performance on real reports.
 - The two Gemini models have full results on the 200 items. The OpenRouter model is partial because of its daily cap.
-- The benchmark set is too easy to separate the two Gemini models well. A harder tier is being built.
+- The standard set cannot separate the two Gemini models: their 95% intervals overlap (94.3 to 98.9 and 91.7 to 97.6).
+- The harder tiers are only a little harder for the models, and the hardest tier (12 bars, 81.6% yield) has been scored on 90 of its 200 items so far.
 - The self-test has no `tf` command yet.
 - Human audit is not done.
+- Floor plans are not built.
 
 ## Next steps
 
-- Finish the OpenRouter run (about 150 items left, at 50 a day).
-- Add the harder tier results.
-- Human audit of sampled tasks.
+- Finish the OpenRouter run (about 100 items left, at 50 a day).
+- Finish the hardest tier's Gemini run (110 items left).
+- Human audit: the kit is ready in `audit/`; the review is still to do.
 - Freeze the run and publish the report on GitHub Pages.

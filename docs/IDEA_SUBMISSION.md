@@ -106,8 +106,8 @@ Service cost: 0. No billing information is needed and no paid tier is used. Hard
 | Deliverable | Where it lives |
 |---|---|
 | Runnable source code | Package `taskfactory`, `pyproject.toml`, lockfile, `tf` CLI |
-| Sample task packages | `out/sample/tasks/` (one sample run, about 30 packages), committed |
-| Validation test logs | `out/sample/validation.jsonl`, pytest log, validator self-test report |
+| Sample task packages | `samples/run/tasks/` (one sample run, 29 packages), committed |
+| Validation test logs | `samples/run/validation.jsonl`, `samples/pytest_log.txt`, `samples/report/selftest.json` |
 | Technical documentation | README quickstart, `docs/PLAN.md`, documented config files |
 | Live working prototype demo | Offline replay from cached files; report on GitHub Pages |
 
