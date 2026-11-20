@@ -7,7 +7,7 @@ TaskFactory draws synthetic bar and line charts from seeded data, asks a questio
 Built for **Track 2 (Visual Task Factory)** of the Innodata AI Hackathon.
 
 ![Python](https://img.shields.io/badge/python-3.12%2B-3776AB?logo=python&logoColor=white)
-![Tests](https://img.shields.io/badge/tests-544%20passing-brightgreen)
+![Tests](https://img.shields.io/badge/tests-576%20passing-brightgreen)
 ![Service cost](https://img.shields.io/badge/service%20cost-%240-success)
 ![Platform](https://img.shields.io/badge/platform-Windows%20tested-0078D6)
 ![Status](https://img.shields.io/badge/status-prototype-orange)
@@ -24,6 +24,7 @@ Built for **Track 2 (Visual Task Factory)** of the Innodata AI Hackathon.
 - [Results so far](#results-so-far)
 - [Quick start](#quick-start)
 - [Usage](#usage)
+- [Sample output](#sample-output)
 - [Configuration](#configuration)
 - [Testing](#testing)
 - [Project layout](#project-layout)
@@ -56,7 +57,7 @@ The seven checks:
 | # | Check | What it confirms |
 |---|---|---|
 | 1 | Schema | The task file has every required field |
-| 2 | Layout | Labels fit, and text is at least 9 px (7 px in the harder tier) |
+| 2 | Layout | Labels fit, and text is at least 9 px (7 px in the harder tiers) |
 | 3 | Ambiguity | The top two values differ by at least a set margin |
 | 4 | OCR read-back | Tesseract reads the labels the question needs |
 | 5 | Pixel reader | OpenCV recomputes the answer from the image alone |
@@ -67,27 +68,40 @@ The seven checks:
 
 - **Five question types:** value lookup, extremum, rank (k-th), pair comparison, and value at a given x (line charts).
 - **Two chart families:** bar and line. Floor plans are out of scope for this MVP.
-- **Reproducible:** each task has a seed derived from the run seed, so the same config gives the same tasks.
+- **Reproducible:** each task has a seed derived from the run seed. Two runs at the same commit give identical output, checked with `tf diff`.
 - **Self-test:** plants five kinds of defect in good tasks and measures how many the checks catch.
 - **Free benchmark:** Gemini and OpenRouter `:free` models, with an answer cache, retries on rate limits and server errors, and a daily-quota stop.
 - **Error labels:** every wrong answer gets one label: empty, refusal or too long, wrong entity, wrong value, or other.
+- **Confidence intervals:** every accuracy comes with a 95% Wilson score interval.
 - **Static report:** one HTML file with no scripts and no external links.
+- **Human audit kit:** a 50-item review sheet and a scorer for the reviewers' answers.
 
 ## Results so far
 
-Scores are exact-match accuracy on the frozen 200-item sets, as of 20 Nov 2026.
+Exact-match accuracy with 95% Wilson intervals, as of 20 Nov 2026.
 
-| Item set | Model | Accuracy | Items |
+| Item set | Model | Accuracy | 95% CI | Items answered |
+|---|---|---|---|---|
+| Standard | Gemini 3.1 Flash-Lite | **97.5%** | 94.3 to 98.9 | 200 / 200 |
+| Standard | Gemini 3.5 Flash-Lite | 95.5% | 91.7 to 97.6 | 200 / 200 |
+| Standard | Nemotron 3.5 Super VL (`:free`) | 100% | 96.3 to 100 | 100 / 200 (daily cap) |
+| Harder (`hard.toml`) | Gemini 3.1 Flash-Lite | 95.5% | 91.7 to 97.6 | 200 / 200 |
+| Harder (`hard.toml`) | Gemini 3.5 Flash-Lite | 95.0% | 91.0 to 97.3 | 200 / 200 |
+| Hardest (`hard2.toml`) | Gemini 3.1 Flash-Lite | 93.3% | 86.2 to 96.9 | 90 / 200 (daily quota) |
+
+What this shows:
+
+- **The standard set cannot separate the two Gemini models.** Their intervals overlap.
+- **The harder tiers are only a little harder.** Most errors come from rank questions.
+- **Sample sizes are small.** Each model has 200 items, so differences of a few points are within noise.
+
+Pool quality:
+
+| Run | Generated | Accepted | Yield |
 |---|---|---|---|
-| Standard | Gemini 3.1 Flash-Lite | **97.5%** | 200 / 200 |
-| Standard | Gemini 3.5 Flash-Lite | 95.5% | 200 / 200 |
-| Standard | Nemotron 3.5 Super VL (`:free`) | 100% so far | 100 / 200 (daily cap) |
-| Harder | Gemini 3.1 Flash-Lite | 95.5% | 200 / 200 |
-| Harder | Gemini 3.5 Flash-Lite | 95.0% | 200 / 200 |
-
-Pool quality: 564 of 565 generated standard tasks pass all checks. The harder tier passes 512 of 534 (yield 95.9%).
-
-The harder tier is only a little harder. Most errors come from rank questions, not from close values.
+| Standard pool (`pool.toml`) | 565 | 564 | 99.8% |
+| Harder (`hard.toml`) | 534 | 512 | 95.9% |
+| Hardest (`hard2.toml`, 12 bars) | 505 | 412 | 81.6% |
 
 ---
 
@@ -114,9 +128,17 @@ cd innodata-hackathon
 
 **2. Create a virtual environment and install**
 
+Option A, with pip:
+
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -e ".[dev]"
+```
+
+Option B, with uv, using the pinned lockfile (`uv.lock`):
+
+```powershell
+uv sync --locked --extra dev
 ```
 
 **3. Check that Tesseract is found**
@@ -129,7 +151,7 @@ The tool looks for Tesseract in this order: the `TESSERACT_CMD` environment vari
 .\.venv\Scripts\python.exe -m pytest -q
 ```
 
-Expect `544 passed`. The suite needs no API keys and takes about two minutes.
+Expect `576 passed`. The suite needs no API keys and takes about three minutes.
 
 **5. Generate a small demo set**
 
@@ -157,7 +179,19 @@ Look in `out\demo\tasks\` for the accepted packages, `out\demo\rejected\` for re
 | `--overwrite` | Delete the old output in `--out` first |
 | `--tesseract` | Path to `tesseract.exe`, if it is not found automatically |
 
-The harder tier uses the same command with `configs/runs/hard.toml`.
+The harder tiers use the same command with `configs/runs/hard.toml` or `configs/runs/hard2.toml`.
+
+### Check repeatability
+
+Two runs of the same config at the same commit should match exactly:
+
+```powershell
+.\.venv\Scripts\tf.exe run --config configs/runs/demo.toml --run-id rep_a --out out\rep_a
+.\.venv\Scripts\tf.exe run --config configs/runs/demo.toml --run-id rep_b --out out\rep_b
+.\.venv\Scripts\tf.exe diff out\rep_a out\rep_b
+```
+
+`tf diff` exits with 0 when the accepted packages and `tasks.jsonl` match, 1 when they differ, and 2 when a folder is missing. It compares bytes, not pixels. Both runs must be made at the same commit, because each manifest records the git SHA.
 
 ### Run the benchmark
 
@@ -204,13 +238,43 @@ Path("out/report/selftest.json").write_text(json.dumps(result, indent=2), encodi
 
 The saved file has a catch rate per defect class, in full mode (`per_class`) and in content-only mode (`content_only_per_class`, with the redraw checks left out). Pass it to `tf report --selftest`.
 
+### Human audit
+
+```powershell
+.\.venv\Scripts\python.exe scripts\make_audit_sheet.py
+```
+
+This writes `audit/audit_sheet.md`, `audit/results_template.csv` and the image copies in `audit/images/`. The answer key goes to `out/audit_key.json`, which git ignores. Reviewers answer from the image only, then fill in the CSV. Score the filled file with:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\score_audit.py --results audit\results.csv --key out\audit_key.json
+```
+
+The audit has not been run yet.
+
+---
+
+## Sample output
+
+The `samples/` folder is committed, so you can inspect the output without running anything.
+
+| Path | What it is |
+|---|---|
+| `samples/run/tasks/` | 29 accepted task packages from the demo config |
+| `samples/run/validation.jsonl`, `tasks.jsonl`, `metrics.json` | Checks, index and counts for that run |
+| `samples/report/index.html` | Static report built from the full standard pool and benchmark |
+| `samples/report/selftest.json` | Self-test results |
+| `samples/pytest_log.txt` | Full test log (576 passed) |
+
+Open any package folder: `image.png` is the chart, `task.json` has the question, `spec.json` the data, and `validation.json` the results of the checks.
+
 ---
 
 ## Configuration
 
 | File | What it sets |
 |---|---|
-| `configs/runs/*.toml` | Run seed, tasks per cell, families, domains, question types, check thresholds, evaluation settings |
+| `configs/runs/*.toml` | Seed, tasks per cell, families, domains, question types, check thresholds, bar count cap (`bar_max_categories`, default 8), evaluation settings |
 | `configs/domains/*.toml` | Title, categories, value range and format for one domain |
 | `configs/models.toml` | Evaluated and secondary models, with their free-tier limits |
 | `configs/blocklist.txt` | Terms that may not appear in titles or categories |
@@ -223,12 +287,13 @@ Add a domain by adding one TOML file in `configs/domains/`. A run lists domains 
 
 | What | Command | Needs |
 |---|---|---|
-| Full test suite | `python -m pytest -q` | Nothing extra; 544 tests |
-| One file | `python -m pytest tests\test_checks_ocr.py -q` | Nothing extra |
+| Full test suite | `python -m pytest -q` | Nothing extra; 576 tests |
+| One file | `python -m pytest tests\test_diff.py -q` | Nothing extra |
 | Demo run | See [Usage](#usage) | Tesseract |
+| Repeatability | See [Check repeatability](#check-repeatability) | Tesseract |
 | Benchmark | See [Usage](#usage) | Free API keys |
 
-The suite covers the sampler, the renderers, the questions, each check, the pipeline, the benchmark (with fake providers, so no real calls), the report and the self-test.
+The suite covers the sampler, the renderers, the questions, each check, the pipeline, the benchmark (with fake providers, so no real calls), the report, the self-test, and `tf diff`.
 
 ---
 
@@ -237,8 +302,12 @@ The suite covers the sampler, the renderers, the questions, each check, the pipe
 ```
 configs/          run, domain, model and blocklist files
 docs/             PLAN.md, PROTOTYPE_BRIEF.md, IDEA_SUBMISSION.md
+samples/          committed sample run, report and test log
+scripts/          human audit: make_audit_sheet.py, score_audit.py
+audit/            audit sheet, results template and image copies
 src/taskfactory/  the package; cli.py is the `tf` command
 tests/            pytest suite
+uv.lock           pinned dependencies
 out/              generated output (git ignored)
 ```
 
@@ -252,10 +321,12 @@ out/              generated output (git ignored)
 - Free-tier quotas set the sample size: 200 items per model.
 - Random data per run only lowers the chance of memorised answers. It does not make the data secret.
 - The checks are only as good as Tesseract and the pixel reader. The rejection log shows what they reject.
+- The human audit is not done.
+- The harder tiers are not clearly harder for the models yet. The hardest tier has been scored on only 90 of its 200 items.
 
 ### Not built yet
 
-- `tf generate`, `tf validate`, `tf score` and `tf diff` (placeholders that print "not implemented").
+- `tf generate`, `tf validate` and `tf score` (placeholders that print "not implemented").
 - A `tf` command for the self-test.
 - Offline replay from committed files.
 
