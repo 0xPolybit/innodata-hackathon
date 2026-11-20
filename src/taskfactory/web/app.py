@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import inspect
 import json
+import mimetypes
 import os
 import platform
 import re
@@ -12,7 +13,7 @@ import traceback
 from collections.abc import Callable, Iterable
 from pathlib import Path
 from typing import Any
-from urllib.parse import parse_qs
+from urllib.parse import parse_qs, unquote
 
 from taskfactory import __version__
 from taskfactory.web.forms import FormError, ParsedForm, parse_form
@@ -111,6 +112,98 @@ def _health() -> Response:
 def _version() -> Response:
     """GET /api/version: the package version and the current commit."""
     return _json_response("200 OK", {"version": __version__, "commit": _commit_sha()})
+
+
+def _not_found() -> Response:
+    """The JSON 404 every missing route and missing static file returns."""
+    return _json_response("404 Not Found", {"error": "not found"})
+
+
+def _site_dir() -> Path:
+    """The committed static site folder beside the package."""
+    return _repo_root() / "site"
+
+
+def _sample_dir() -> Path:
+    """The sample report folder the container serves under ``/sample/``."""
+    return _site_dir() / "sample"
+
+
+def _static_path(path: str) -> bool:
+    """True for the two static namespaces: ``/about`` and ``/sample/...``."""
+    return path == "/about" or path == "/sample" or path.startswith("/sample/")
+
+
+def _content_type(path: Path) -> str:
+    """A file's media type from its name, with a charset for text formats."""
+    guessed, _ = mimetypes.guess_type(path.name)
+    if guessed is None:
+        return "application/octet-stream"
+    if guessed.startswith("text/") or guessed in {
+        "application/json",
+        "application/javascript",
+    }:
+        return f"{guessed}; charset=utf-8"
+    return guessed
+
+
+def _file_response(path: Path, root: Path) -> Response:
+    """Serve one file's exact bytes, or 404 when it is missing or outside ``root``.
+
+    The path is resolved before it is compared with the root, so ``..`` and a
+    symlink that points out of the folder both become a 404.
+    """
+    try:
+        resolved = path.resolve()
+        resolved.relative_to(root.resolve())
+    except (OSError, ValueError):
+        return _not_found()
+    if not resolved.is_file():
+        return _not_found()
+    try:
+        body = resolved.read_bytes()
+    except OSError:
+        return _not_found()
+    return (
+        "200 OK",
+        [
+            ("Content-Type", _content_type(resolved)),
+            ("Content-Length", str(len(body))),
+        ],
+        body,
+    )
+
+
+def _sample_response(path: str) -> Response:
+    """GET /sample/...: a file under ``site/sample/``, never one outside it."""
+    root = _sample_dir()
+    relative = unquote(path[len("/sample/") :]).replace("\x00", "")
+    if not relative or relative.endswith("/"):
+        relative += "index.html"
+    candidate = root / relative
+    try:
+        if candidate.is_dir():
+            candidate = candidate / "index.html"
+    except OSError:
+        return _not_found()
+    return _file_response(candidate, root)
+
+
+def _static_response(path: str) -> Response:
+    """The static route response for ``/about`` and ``/sample/...``."""
+    if path == "/about":
+        return _file_response(_site_dir() / "index.html", _site_dir())
+    if path == "/sample":
+        return (
+            "301 Moved Permanently",
+            [
+                ("Location", "/sample/"),
+                ("Content-Type", "text/html; charset=utf-8"),
+                ("Content-Length", "0"),
+            ],
+            b"",
+        )
+    return _sample_response(path)
 
 
 class _Respond(Exception):
@@ -285,30 +378,38 @@ def application(environ: dict[str, Any], start_response: Callable[..., Any]) -> 
     method = str(environ.get("REQUEST_METHOD", "GET")).upper()
     path = environ.get("PATH_INFO") or "/"
 
-    post_handler = _POST_ROUTES.get(path)
-    if post_handler is not None:
-        if method != "POST":
-            status, headers, body = _json_response(
-                "405 Method Not Allowed",
-                {"error": "method not allowed"},
-                [("Allow", "POST")],
-            )
-        else:
-            status, headers, body = post_handler(environ)
-    else:
-        handler = _GET_ROUTES.get(path)
-        if handler is None:
-            status, headers, body = _json_response(
-                "404 Not Found", {"error": "not found"}
-            )
-        elif method != "GET":
+    if _static_path(path):
+        if method != "GET":
             status, headers, body = _json_response(
                 "405 Method Not Allowed",
                 {"error": "method not allowed"},
                 [("Allow", "GET")],
             )
         else:
-            status, headers, body = handler()
+            status, headers, body = _static_response(path)
+    else:
+        post_handler = _POST_ROUTES.get(path)
+        if post_handler is not None:
+            if method != "POST":
+                status, headers, body = _json_response(
+                    "405 Method Not Allowed",
+                    {"error": "method not allowed"},
+                    [("Allow", "POST")],
+                )
+            else:
+                status, headers, body = post_handler(environ)
+        else:
+            handler = _GET_ROUTES.get(path)
+            if handler is None:
+                status, headers, body = _not_found()
+            elif method != "GET":
+                status, headers, body = _json_response(
+                    "405 Method Not Allowed",
+                    {"error": "method not allowed"},
+                    [("Allow", "GET")],
+                )
+            else:
+                status, headers, body = handler()
 
     start_response(status, headers)
     return [body]

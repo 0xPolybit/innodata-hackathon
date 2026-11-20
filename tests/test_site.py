@@ -57,7 +57,8 @@ def test_sample_report_relative_links_resolve() -> None:
     assert not missing, f"site/sample/index.html points at missing files: {missing}"
 
 
-def test_vercel_config_points_at_site() -> None:
+def test_vercel_config_uses_container() -> None:
     assert VERCEL.is_file(), "vercel.json is missing"
     config = json.loads(VERCEL.read_text(encoding="utf-8"))
-    assert config["outputDirectory"] == "site"
+    assert config["framework"] == "container"
+    assert "outputDirectory" not in config
