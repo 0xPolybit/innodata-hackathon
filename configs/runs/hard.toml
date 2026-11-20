@@ -1,0 +1,18 @@
+# Harder tier: narrow value bands force closer readings in every domain.
+# Floor plans are out of the MVP (solo cut in docs/PLAN.md section 5).
+run_seed = 20261220
+tasks_per_cell = 40
+question_in_image = true
+families = ["bar", "line"]
+domains = ["tourism_hard", "retail_hard", "energy_hard"]
+question_types = ["value_lookup", "extremum", "rank_k", "pair_compare", "series_at_x"]
+
+[checks]
+ambiguity_min_margin = 0.02
+min_font_px = 7
+near_dup_phash_max = 6
+
+[eval]
+items_per_model = 200
+stratify_by = ["family", "question_type"]
+models = "configs/models.toml"

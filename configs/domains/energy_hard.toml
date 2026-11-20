@@ -1,0 +1,5 @@
+title = "Electricity generation by source, GWh ({year})"
+categories = ["Solar", "Wind", "Hydro", "Gas", "Coal", "Nuclear", "Biomass", "Geothermal", "Tidal", "Wave", "Oil", "Lignite", "Peat", "Pumped Storage", "Offshore Wind", "Landfill Gas"]
+value_range = [4000, 21920]
+value_format = "{:,}"
+families = ["bar", "line"]
