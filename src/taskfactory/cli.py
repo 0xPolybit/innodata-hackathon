@@ -221,6 +221,41 @@ def _report_command(args: argparse.Namespace) -> int:
     return 0
 
 
+def _add_diff_command(subparsers: Any) -> None:
+    """Register ``tf diff``, which compares the accepted packages and index of two runs."""
+    diff = subparsers.add_parser(
+        "diff",
+        help="compare the accepted packages and tasks.jsonl of two runs",
+        description=(
+            "Compare two run folders written by tf run. Accepted packages in tasks/ are matched "
+            "by folder name, and a package is changed when any of its files differs in bytes "
+            "(images are compared as bytes, never as pixels). tasks.jsonl is compared line by "
+            "line, in any order, and the rejected/ folders are counted. The comparison is printed "
+            "as JSON on stdout; a one-line summary goes to stderr. Exit code 0 when the accepted "
+            "packages and tasks.jsonl match, 1 when they differ, 2 when a run folder is missing."
+        ),
+    )
+    diff.add_argument("run_a", type=Path, help="first run folder, for example out/run_a")
+    diff.add_argument("run_b", type=Path, help="second run folder, for example out/run_b")
+    diff.set_defaults(func=_diff_command)
+
+
+def _diff_command(args: argparse.Namespace) -> int:
+    """Handle ``tf diff``: compare two runs, print the report, and return 0, 1 or 2."""
+    # Imported here, as the other handlers do, so that --help does not load the module.
+    from taskfactory.diff import compare_runs
+
+    try:
+        result = compare_runs(args.run_a, args.run_b)
+    except OSError as exc:  # a missing run, tasks or rejected folder is a FileNotFoundError
+        print(f"tf diff: error: {exc}", file=sys.stderr)
+        return 2
+
+    print(json.dumps(result.to_json(), indent=2))
+    print(result.summary(), file=sys.stderr)
+    return result.exit_code
+
+
 def build_parser() -> argparse.ArgumentParser:
     """Build the ``tf`` argument parser."""
     parser = argparse.ArgumentParser(
@@ -240,6 +275,9 @@ def build_parser() -> argparse.ArgumentParser:
             continue
         if name == "report":
             _add_report_command(subparsers)
+            continue
+        if name == "diff":
+            _add_diff_command(subparsers)
             continue
         subparser = subparsers.add_parser(
             name,
