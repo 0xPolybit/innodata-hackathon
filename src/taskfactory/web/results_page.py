@@ -70,8 +70,6 @@ ZIP_NOTE = (
 
 MAX_PAGE_BYTES = 4_000_000
 
-_MONO = 'ui-monospace, "Cascadia Mono", Consolas, monospace'
-
 
 def _svg(paths: str) -> str:
     """One local Lucide-style icon, in the same shape as the shared icons."""
@@ -100,93 +98,87 @@ _ICONS = {
 }
 
 _STYLE = """
-.breadcrumb { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem; margin: 0 0 1rem; color: var(--muted-foreground); font-size: 0.85rem; }
-.breadcrumb a { display: inline-flex; align-items: center; gap: 0.35rem; margin-left: -0.45rem; padding: 0.25rem 0.45rem; border-radius: calc(var(--radius) - 2px); font-weight: 500; }
+.breadcrumb { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 0 20px; color: var(--muted-foreground); font-size: 13px; }
+.breadcrumb a { display: inline-flex; align-items: center; gap: 6px; min-height: 32px; margin-left: -8px; padding: 0 8px; border-radius: var(--radius-control); font-weight: 500; }
 .breadcrumb a:hover { background: var(--accent); color: var(--foreground); text-decoration: none; }
 .breadcrumb-sep { opacity: 0.55; }
-.page-head { margin-bottom: 1.5rem; }
-.page-head h1 { margin: 0 0 0.4rem; font-size: clamp(1.75rem, 5vw, 2.35rem); line-height: 1.1; letter-spacing: -0.02em; }
+.page-head { margin-bottom: 24px; }
+.page-head h1 { margin: 0 0 8px; font-size: clamp(2rem, 1.4rem + 2.4vw, 2.75rem); line-height: 1.1; font-weight: 500; letter-spacing: -0.015em; }
 .page-lead { margin: 0; max-width: 44rem; color: var(--muted-foreground); }
-.stat-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem; }
-.stat-tile { min-width: 0; padding: 0.85rem 1rem; border: 1px solid var(--border); border-radius: calc(var(--radius) - 2px); background: var(--background); }
-.stat-label { display: flex; align-items: center; gap: 0.4rem; margin: 0; color: var(--muted-foreground); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }
-.stat-value { margin: 0.3rem 0 0; font-size: 1.7rem; font-weight: 700; line-height: 1.1; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
-.meter { height: 4px; margin-top: 0.55rem; border-radius: 999px; background: var(--muted); overflow: hidden; }
-.meter-fill { display: block; height: 100%; border-radius: 999px; background: var(--success); }
-.meter-yield .meter-fill { background: var(--primary); }
-.run-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 0.9rem; margin: 0.9rem 0 0; color: var(--muted-foreground); font-size: 0.85rem; }
-.meta-label { margin-right: 0.15rem; color: var(--muted-foreground); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }
-.run-meta code, .commit-details code, .task-title code, .check-code { font-family: __MONO__; }
-.run-meta code { font-size: 0.8rem; overflow-wrap: anywhere; }
-.commit-details { margin-top: 0.7rem; font-size: 0.85rem; }
-.commit-details summary { display: inline-flex; cursor: pointer; border-radius: calc(var(--radius) - 3px); color: var(--muted-foreground); font-size: 0.8rem; font-weight: 600; }
+.summary-figures { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); margin: 0; border-top: 1px solid var(--border); }
+.summary-figure { min-width: 0; margin: 0; padding: 16px 0; border-bottom: 1px solid var(--border); }
+.summary-figure:nth-child(odd) { padding-right: 16px; }
+.summary-figure:nth-child(even) { padding-left: 16px; border-left: 1px solid var(--border); }
+.summary-label { margin: 0; color: var(--muted-foreground); font-family: var(--mono); font-size: 12px; }
+.summary-value { margin: 4px 0 0; font-size: 28px; font-weight: 500; line-height: 1.05; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.meter { height: 4px; margin-top: 8px; border-radius: 2px; background: var(--muted); overflow: hidden; }
+.meter-fill { display: block; height: 100%; background: var(--primary); }
+.run-meta { display: flex; flex-wrap: wrap; gap: 4px 20px; margin: 16px 0 0; color: var(--muted-foreground); font-size: 13px; }
+.run-meta code, .task-id, .check-code, .commit-details code { font-family: var(--mono); }
+.run-meta code { font-size: 12px; overflow-wrap: anywhere; }
+.num { color: var(--foreground); font-family: var(--mono); font-size: 12px; font-weight: 400; }
+.commit-details { margin-top: 8px; font-size: 13px; }
+.commit-details summary { display: list-item; min-height: 32px; padding-left: 2px; cursor: pointer; color: var(--muted-foreground); font-size: 13px; }
 .commit-details summary:hover { color: var(--foreground); }
-.commit-details p { margin: 0.4rem 0 0; }
-.commit-details code { font-size: 0.8rem; overflow-wrap: anywhere; }
-.band-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 0.65rem; margin-top: 1.1rem; }
+.commit-details p { margin: 4px 0 0; }
+.commit-details code { font-size: 12px; overflow-wrap: anywhere; }
+.band-actions { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 12px; margin-top: 20px; }
 .band-actions form { margin: 0; }
-.results-section { margin-top: 2rem; }
-.section-head h2 { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin: 0 0 0.9rem; font-size: 1.3rem; letter-spacing: -0.01em; }
-.check-list { list-style: none; display: grid; gap: 0.95rem; margin: 0; padding: 0; }
+.band-actions .hint { margin: 8px 0 0; max-width: 34rem; }
+.results-section { margin-top: 40px; }
+.section-head { margin: 0 0 12px; }
+.section-head h2 { display: flex; align-items: baseline; gap: 8px; margin: 0; font-size: 20px; font-weight: 500; letter-spacing: -0.01em; }
+.count { color: var(--muted-foreground); font-family: var(--mono); font-size: 12px; font-weight: 400; }
+.check-list { list-style: none; display: grid; gap: 12px; margin: 0; padding: 0; }
 .check-row { min-width: 0; }
-.check-line { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 0.2rem 0.75rem; }
-.check-name { font-size: 0.9rem; font-weight: 600; }
-.check-code { color: var(--muted-foreground); font-size: 0.75rem; font-weight: 400; }
-.check-score { color: var(--muted-foreground); font-size: 0.8rem; font-variant-numeric: tabular-nums; }
-.check-row .meter { margin-top: 0.35rem; }
-.checks-card .alert { margin-top: 1rem; }
-.task-grid { list-style: none; display: grid; grid-template-columns: minmax(0, 1fr); gap: 1rem; margin: 0; padding: 0; }
+.check-line { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 2px 16px; }
+.check-name { font-size: 14px; font-weight: 500; }
+.check-code { color: var(--muted-foreground); font-size: 11px; font-weight: 400; }
+.check-score { color: var(--muted-foreground); font-family: var(--mono); font-size: 12px; }
+.check-row .meter { margin-top: 4px; }
+.checks-card .alert { margin-top: 16px; }
+.task-grid { list-style: none; display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; margin: 0; padding: 0; }
 .task-card { display: flex; flex-direction: column; min-width: 0; overflow: hidden; }
-.task-media { padding: 0.6rem 0.6rem 0; }
-.task-media img { display: block; width: 100%; height: auto; border: 1px solid var(--border); border-radius: calc(var(--radius) - 2px); }
-.rejected-card .task-media img { opacity: 0.8; }
-.task-body { display: flex; flex: 1; flex-direction: column; gap: 0.55rem; min-width: 0; padding: 0.75rem 1rem 1rem; }
-.task-title { margin: 0; color: var(--muted-foreground); font-size: 0.72rem; font-weight: 600; overflow-wrap: anywhere; }
-.task-title code { font-size: 0.74rem; }
-.task-question { margin: 0; font-size: 0.95rem; line-height: 1.45; overflow-wrap: anywhere; }
-.answer-box { display: flex; align-items: flex-start; gap: 0.5rem; padding: 0.55rem 0.7rem; border: 1px solid color-mix(in srgb, var(--success) 28%, var(--border)); border-radius: calc(var(--radius) - 2px); background: color-mix(in srgb, var(--success) 8%, var(--card)); }
-.answer-box > .icon { margin-top: 0.15rem; color: color-mix(in srgb, var(--success) 75%, var(--foreground)); }
-.answer-label { display: block; color: var(--muted-foreground); font-size: 0.68rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
-.answer-value { margin: 0.05rem 0 0; font-weight: 600; overflow-wrap: anywhere; }
-.task-badges, .check-chips { list-style: none; display: flex; flex-wrap: wrap; gap: 0.3rem; margin: 0; padding: 0; }
-.task-badges .badge { font-size: 0.7rem; font-weight: 600; }
-.task-checks { margin: 0; color: var(--muted-foreground); font-size: 0.78rem; }
-.check-chips { gap: 0.28rem; }
-.check-chips .badge { gap: 0.25rem; padding: 0.12rem 0.45rem; font-size: 0.68rem; }
-.check-chips .icon { width: 0.95em; height: 0.95em; }
+.task-media { padding: 16px 16px 0; }
+.task-media img { display: block; width: 100%; height: auto; border: 1px solid var(--border); border-radius: var(--radius-tag); background: #fff; }
+.rejected-card .task-media img { opacity: 0.82; }
+.task-body { display: flex; flex: 1; flex-direction: column; gap: 12px; min-width: 0; padding: 16px; }
+.task-id { margin: 0; color: var(--muted-foreground); font-size: 11px; overflow-wrap: anywhere; }
+.task-question { margin: 0; font-size: 16px; font-weight: 500; line-height: 1.4; overflow-wrap: anywhere; }
+.answer-box { display: flex; align-items: flex-start; gap: 8px; padding-top: 12px; border-top: 1px solid var(--border); }
+.answer-box > .icon { margin-top: 2px; color: var(--primary); }
+.answer-label { display: block; color: var(--muted-foreground); font-family: var(--mono); font-size: 11px; }
+.answer-value { margin: 2px 0 0; font-size: 15px; font-weight: 500; overflow-wrap: anywhere; }
+.task-meta { margin: 0; color: var(--muted-foreground); font-family: var(--mono); font-size: 11px; overflow-wrap: anywhere; }
+.task-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin-top: auto; }
+.task-checks { margin: 0; color: var(--muted-foreground); font-size: 12px; }
+.check-strip { list-style: none; display: flex; gap: 4px; margin: 0; padding: 0; }
+.check-strip li { width: 8px; height: 8px; border-radius: 2px; background: var(--primary); }
+.check-strip li.fail { background: var(--destructive); }
+.task-badges { list-style: none; display: flex; flex-wrap: wrap; gap: 4px; margin: 0; padding: 0; }
 .alert-text { min-width: 0; }
-.alert-text ul { margin: 0; padding-left: 1rem; }
+.alert-text ul { margin: 0; padding-left: 16px; }
 .reason-list li { overflow-wrap: anywhere; }
-.empty-line { display: flex; align-items: flex-start; gap: 0.6rem; margin: 0; color: var(--muted-foreground); font-size: 0.9rem; }
-.empty-line .icon { margin-top: 0.15rem; }
+.reason-list strong { font-weight: 500; }
+.empty-line { display: flex; align-items: flex-start; gap: 8px; margin: 0; color: var(--muted-foreground); font-size: 14px; }
+.empty-line .icon { margin-top: 2px; }
 .visually-hidden { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 @media (min-width: 720px) {
-  .stat-tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .summary-figures { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .summary-figure { padding: 16px; border-bottom: 0; }
+  .summary-figure:nth-child(1) { padding-left: 0; }
+  .summary-figure + .summary-figure { border-left: 1px solid var(--border); }
+}
+@media (min-width: 900px) {
   .task-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
-@media (min-width: 1040px) {
-  .task-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-}
 @media (prefers-reduced-motion: no-preference) {
-  @keyframes result-card-in {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-  .task-card {
-    animation: result-card-in 320ms ease-out both;
-    transition: transform 160ms ease, box-shadow 160ms ease;
-  }
-  @media (hover: hover) {
-    .task-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 24px rgb(0 0 0 / 0.12);
-    }
-  }
+  @keyframes page-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  .page-head { animation: page-in 360ms cubic-bezier(0.22, 1, 0.36, 1) both; }
+  .task-card { transition: border-color 140ms cubic-bezier(0.22, 1, 0.36, 1); }
+  @media (hover: hover) { .task-card:hover { border-color: color-mix(in srgb, var(--foreground) 22%, var(--border)); } }
 }
-@media (prefers-color-scheme: dark) and (prefers-reduced-motion: no-preference) and (hover: hover) {
-  .task-card:hover { box-shadow: 0 10px 24px rgb(0 0 0 / 0.55); }
-}
-""".replace("__MONO__", _MONO)
+"""
 
 
 def render_results_page(
@@ -211,7 +203,7 @@ def _page(result: "GenerationResult", form: forms.ParsedForm | None) -> str:
 {_breadcrumb()}
 <header class="page-head">
 <h1>Results</h1>
-<p class="page-lead">TaskFactory results for your settings: every chart below carries its question, exact answer and all seven checks.</p>
+<p class="page-lead">TaskFactory results for the settings you chose. Every chart carries its question, exact answer and all seven checks.</p>
 </header>
 {_summary_band(result, form)}
 {_planned_note(result, form)}
@@ -231,31 +223,27 @@ def _breadcrumb() -> str:
 
 
 def _summary_band(result: "GenerationResult", form: forms.ParsedForm | None) -> str:
-    """The four stat tiles, the run line, the full commit and the two actions."""
+    """The four figures, the run line, the full commit and the two actions."""
     rate = min(max(result.yield_ * 100, 0.0), 100.0)
     rate_text = f"{rate:.1f}"
     elapsed = f"{result.elapsed_seconds:.1f} s"
     return f"""<section class="card results-band" aria-labelledby="summary-heading">
 <div class="card-header">
-<h2 class="card-title" id="summary-heading">{ICONS["file-text"]}<span>Run summary</span></h2>
+<h2 class="card-title" id="summary-heading">Run summary</h2>
 <p class="card-description">Totals for this run. The ZIP holds the same charts and files.</p>
 </div>
 <div class="card-content">
-<div class="stat-tiles">
-{_stat_tile("list-checks", "Attempted", str(result.attempted))}
-{_stat_tile("check-circle", "Accepted", str(result.accepted))}
-{_stat_tile("x-circle", "Rejected", str(result.rejected))}
-<div class="stat-tile">
-<p class="stat-label">{ICONS["gauge"]}<span>Yield</span></p>
-<p class="stat-value">{escape(rate_text)}%</p>
-<div class="meter meter-yield" role="progressbar" aria-label="Yield" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{escape(rate_text)}"><span class="meter-fill" style="width:{escape(rate_text)}%"></span></div>
-</div>
+<div class="summary-figures">
+{_summary_figure("Attempted", str(result.attempted))}
+{_summary_figure("Accepted", str(result.accepted))}
+{_summary_figure("Rejected", str(result.rejected))}
+{_summary_figure("Yield", f"{rate_text}%", meter=rate_text)}
 </div>
 <p class="run-meta">
-<span><span class="meta-label">Run</span> <code>{escape(result.run_id)}</code></span>
-<span><span class="meta-label">Seed</span> <strong>{escape(str(result.seed))}</strong></span>
-<span><span class="meta-label">Elapsed</span> <strong>{escape(elapsed)}</strong></span>
-<span class="badge badge-muted">Commit {escape(result.commit[:7])}</span>
+<span>Run <code>{escape(result.run_id)}</code></span>
+<span>Seed <span class="num">{escape(str(result.seed))}</span></span>
+<span>Elapsed <span class="num">{escape(elapsed)}</span></span>
+<span>Commit <code>{escape(result.commit[:7])}</code></span>
 </p>
 <details class="commit-details">
 <summary>Full commit</summary>
@@ -269,11 +257,19 @@ def _summary_band(result: "GenerationResult", form: forms.ParsedForm | None) -> 
 </section>"""
 
 
-def _stat_tile(icon: str, label: str, value: str) -> str:
-    """One small labelled total with a shared icon."""
-    return f"""<div class="stat-tile">
-<p class="stat-label">{ICONS[icon]}<span>{escape(label)}</span></p>
-<p class="stat-value">{escape(value)}</p>
+def _summary_figure(label: str, value: str, *, meter: str | None = None) -> str:
+    """One labelled figure. Yield alone carries a thin bar."""
+    bar = ""
+    if meter is not None:
+        bar = (
+            f'<div class="meter" role="progressbar" aria-label="Yield" '
+            f'aria-valuemin="0" aria-valuemax="100" aria-valuenow="{escape(meter)}">'
+            f'<span class="meter-fill" style="width:{escape(meter)}%"></span></div>'
+        )
+    return f"""<div class="summary-figure">
+<p class="summary-label">{escape(label)}</p>
+<p class="summary-value">{escape(value)}</p>
+{bar}
 </div>"""
 
 
@@ -301,6 +297,7 @@ def _checks_card(result: "GenerationResult") -> str:
     """One row per check: its plain name, its id and a bar of passes."""
     passed = _check_totals(result)
     rows = []
+    aria_max = max(result.attempted, 1)
     for name in CHECK_NAMES:
         count = passed[name]
         label = _plain_name(name)
@@ -310,14 +307,14 @@ def _checks_card(result: "GenerationResult") -> str:
 <span class="check-name">{escape(label)} <code class="check-code">{escape(name)}</code></span>
 <span class="check-score">{escape(str(count))} of {escape(str(result.attempted))}</span>
 </div>
-<div class="meter" role="progressbar" aria-label="{escape(label)} passed" aria-valuemin="0" aria-valuemax="{escape(str(result.attempted))}" aria-valuenow="{escape(str(count))}"><span class="meter-fill" style="width:{_width(count, result.attempted)}"></span></div>
+<div class="meter" role="progressbar" aria-label="{escape(label)} passed" aria-valuemin="0" aria-valuemax="{escape(str(aria_max))}" aria-valuenow="{escape(str(count))}"><span class="meter-fill" style="width:{_width(count, result.attempted)}"></span></div>
 </li>"""
         )
     rows_html = "\n".join(rows)
     warning = _accepted_failure_alert(result)
     return f"""<section class="card results-section checks-card" aria-labelledby="checks-heading">
 <div class="card-header">
-<h2 class="card-title" id="checks-heading">{ICONS["list-checks"]}<span>Seven checks</span></h2>
+<h2 class="card-title" id="checks-heading">Seven checks</h2>
 <p class="card-description">How many attempted tasks passed each check.</p>
 </div>
 <div class="card-content">
@@ -354,7 +351,7 @@ def _accepted_section(result: "GenerationResult") -> str:
     tasks = sorted(result.accepted_tasks, key=lambda task: task.task_id)
     heading = (
         '<div class="section-head">'
-        f'<h2 id="accepted-heading">Accepted tasks <span class="badge badge-success">{escape(str(len(tasks)))}</span></h2>'
+        f'<h2 id="accepted-heading">Accepted tasks <span class="count">{escape(str(len(tasks)))}</span></h2>'
         "</div>"
     )
     if tasks:
@@ -380,7 +377,7 @@ def _rejected_section(result: "GenerationResult") -> str:
     cards = "\n".join(_rejected_card(task, result.artifacts) for task in tasks)
     heading = (
         '<div class="section-head">'
-        f'<h2 id="rejected-heading">Rejected tasks <span class="badge badge-destructive">{escape(str(len(tasks)))}</span></h2>'
+        f'<h2 id="rejected-heading">Rejected tasks <span class="count">{escape(str(len(tasks)))}</span></h2>'
         "</div>"
     )
     return (
@@ -390,7 +387,7 @@ def _rejected_section(result: "GenerationResult") -> str:
 
 
 def _accepted_card(task: "TaskSummary", artifacts: Mapping[str, bytes]) -> str:
-    """One accepted task: image, question, exact answer, badges and seven chips."""
+    """One accepted task: the chart, its question, exact answer and check strip."""
     payload = _task_payload(artifacts, "tasks", task.task_id)
     question = _text(payload.get("question"))
     answer = _text(payload.get("answer"))
@@ -401,27 +398,26 @@ def _accepted_card(task: "TaskSummary", artifacts: Mapping[str, bytes]) -> str:
     )
     media = f'<div class="task-media">{image}</div>' if image else ""
     checks = f"{task.passed_checks} of {task.total_checks} checks passed"
+    meta = " / ".join((task.family, task.question_type, task.domain))
+    heading = f'<h3 class="task-question">{escape(question)}</h3>\n' if question else ""
     return f"""<li class="card task-card">
 {media}
 <div class="task-body">
-<h3 class="task-title"><code>{escape(task.task_id)}</code></h3>
-<p class="task-question">{escape(question)}</p>
-<div class="answer-box">
+<p class="task-id"><code>{escape(task.task_id)}</code></p>
+{heading}<div class="answer-box">
 {_ICONS["check"]}
 <div>
 <span class="answer-label">Exact answer</span>
 <p class="answer-value">{escape(answer)}</p>
 </div>
 </div>
-<ul class="task-badges" aria-label="Task attributes">
-<li class="badge badge-muted">{escape(task.family)}</li>
-<li class="badge badge-muted">{escape(task.question_type)}</li>
-<li class="badge badge-muted">{escape(task.domain)}</li>
-</ul>
+<p class="task-meta">{escape(meta)}</p>
+<div class="task-foot">
 <p class="task-checks">{escape(checks)}</p>
-<ul class="check-chips" aria-label="Seven checks">
-{_chips(task)}
+<ul class="check-strip" aria-label="Seven checks">
+{_checks_strip(task)}
 </ul>
+</div>
 </div>
 </li>"""
 
@@ -444,10 +440,13 @@ def _rejected_card(task: "TaskSummary", artifacts: Mapping[str, bytes]) -> str:
     )
     if not badges:
         badges = '<li class="badge badge-destructive">Unknown</li>'
+    meta = " / ".join((task.family, task.question_type, task.domain))
+    heading = f'<h3 class="task-question">{escape(question)}</h3>\n' if question else ""
     return f"""<li class="card task-card rejected-card">
 {media}
 <div class="task-body">
-<h3 class="task-title"><code>{escape(task.task_id)}</code></h3>
+<p class="task-id"><code>{escape(task.task_id)}</code></p>
+{heading}<p class="task-meta">{escape(meta)}</p>
 <ul class="task-badges" aria-label="Failed checks">{badges}</ul>
 {_reason_alert(task)}
 </div>
@@ -505,26 +504,20 @@ def _hidden(name: str, value: str) -> str:
     return f'<input type="hidden" name="{escape(name)}" value="{escape(value)}">'
 
 
-def _chips(task: "TaskSummary") -> str:
-    """One pass/fail chip for every one of the seven checks."""
+def _checks_strip(task: "TaskSummary") -> str:
+    """Seven small marks: one per check, filled for a pass and red for a fail."""
     outcomes = _check_outcomes(task)
-    chips = []
+    marks = []
     for name in CHECK_NAMES:
         passed = outcomes.get(name, False)
         label = _plain_name(name)
-        if passed:
-            chips.append(
-                f'<li class="badge badge-success">{_ICONS["check"]}'
-                f'<span>{escape(label)}</span>'
-                '<span class="visually-hidden"> passed</span></li>'
-            )
-        else:
-            chips.append(
-                f'<li class="badge badge-destructive">{_ICONS["x"]}'
-                f'<span>{escape(label)}</span>'
-                '<span class="visually-hidden"> failed</span></li>'
-            )
-    return "\n".join(chips)
+        state = " passed" if passed else " failed"
+        mark = "fail" if not passed else ""
+        marks.append(
+            f'<li class="{mark}"><span class="visually-hidden">'
+            f"{escape(label)}{state}</span></li>"
+        )
+    return "\n".join(marks)
 
 
 def _check_totals(result: "GenerationResult") -> dict[str, int]:

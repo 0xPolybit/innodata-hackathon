@@ -57,9 +57,13 @@ def _chosen(value: Any) -> list[str]:
     return []
 
 
-def _section_title(icon: str, text: str) -> str:
-    """One small heading with its icon above a group of fields."""
-    return f'<div class="section-title">{ICONS[icon]}<span>{escape(text)}</span></div>'
+def _section_title(text: str) -> str:
+    """One section heading above a group of fields.
+
+    The registration mark is drawn by CSS, so the heading stays plain text and
+    the document has a real h3 under the card's h2.
+    """
+    return f'<h3 class="section-title">{escape(text)}</h3>'
 
 
 def _number_field(
@@ -146,7 +150,7 @@ def _form(values: Mapping[str, Any] | None) -> str:
     merged = _merged(values)
     question_labels = {name: QUESTION_LABELS[name] for name in QUESTION_TYPES}
     return f"""<form method="post" action="/api/generate">
-{_section_title("database", "Dataset")}
+{_section_title("Dataset")}
 <div class="form-grid">
 {_number_field("seed", "Seed", merged["seed"], SEED_MIN, SEED_MAX, "Same seed, same charts", "sliders-horizontal")}
 {_number_field("charts_per_type", "Charts per type", merged["charts_per_type"], CHARTS_PER_TYPE_MIN, CHARTS_PER_TYPE_MAX, "Between 1 and 6 charts for each selected type.", "list-checks")}
@@ -154,13 +158,13 @@ def _form(values: Mapping[str, Any] | None) -> str:
 {_choice_field("difficulty", "Difficulty", DIFFICULTIES, _chosen(merged["difficulty"]), "radio", "gauge", "Standard or harder thresholds for the checks.")}
 </div>
 <hr class="separator">
-{_section_title("image", "Charts")}
+{_section_title("Charts")}
 <div class="form-grid">
 {_choice_field("chart_types", "Chart types", CHART_TYPES, _chosen(merged["chart_types"]), "checkbox", "list-checks", "Choose at least one. Bar charts carry four question types; line charts carry the series question.", sentinel=True)}
 {_image_toggle(bool(merged["question_in_image"]))}
 </div>
 <hr class="separator">
-{_section_title("list-checks", "Questions")}
+{_section_title("Questions")}
 {_choice_field("question_types", "Question types", question_labels, _chosen(merged["question_types"]), "checkbox", "list-checks", "Choose at least one. Series at x needs line charts.", sentinel=True)}
 <p class="hint">About {default_task_count()} tasks with these defaults. A choice above {MAX_TASKS} tasks is refused.</p>
 <div class="form-actions">
@@ -170,36 +174,38 @@ def _form(values: Mapping[str, Any] | None) -> str:
 
 
 def render_page(values: Mapping[str, Any] | None = None) -> str:
-    """The form page: hero, the build card, the cold-start note and features."""
+    """The form page: hero, the build card, the cold-start note and the checks."""
     body = f"""<section class="hero">
-<span class="badge">{ICONS["database"]}<span>Free chart-question factory</span></span>
 <h1>Make chart questions with exact answers</h1>
-<p>Charts are drawn from seeded data, so every answer is known exactly. Seven checks run without AI, and any chart that fails is shown with the reason it was rejected.</p>
+<p>Charts are drawn from seeded data, so every answer is known exactly. Seven checks run without a model, and any chart that fails is shown with the reason it was rejected.</p>
 </section>
 
-<div class="card delay-1">
+<div class="card page-enter delay-1">
 <div class="card-header">
-<h2 class="card-title">{ICONS["sliders-horizontal"]}<span>Build a set of charts</span></h2>
-<p class="card-description">Defaults give about {default_task_count()} tasks. Change anything, then press Generate.</p>
+<h2 class="card-title">Build a set of charts</h2>
+<p class="card-description">Same seed, same charts. Change anything, then press Generate.</p>
 </div>
 <div class="card-content">
 {_form(values)}
-<div class="alert alert-info" role="status">{ICONS["info"]}<p>{escape(COLD_START_MESSAGE)}</p></div>
+<p class="note" role="status">{ICONS["info"]}<span>{escape(COLD_START_MESSAGE)}</span></p>
 </div>
 </div>
 
+<section class="checks-intro" aria-labelledby="checks-intro-heading">
+<h2 class="section-title" id="checks-intro-heading">How it checks</h2>
 <div class="stats">
-<div class="stat delay-1">
-<h3>{ICONS["check-circle"]}<span>Exact answers</span></h3>
-<p>Every answer comes from the seeded data, not from an AI guess.</p>
+<div class="stat">
+<h3>Exact answers</h3>
+<p>Every answer comes from the seeded data, not from a model guess.</p>
 </div>
-<div class="stat delay-2">
-<h3>{ICONS["list-checks"]}<span>Seven checks</span></h3>
+<div class="stat">
+<h3>Seven local checks</h3>
 <p>Text size, clarity, pixel reader, OCR read-back and redraw tests on each task.</p>
 </div>
-<div class="stat delay-2">
-<h3>{ICONS["gauge"]}<span>Free to run</span></h3>
-<p>No billing and no keys. The checks run locally in plain code.</p>
+<div class="stat">
+<h3>Free to run</h3>
+<p>No billing and no keys. The checks run in plain code.</p>
 </div>
-</div>"""
+</div>
+</section>"""
     return page_shell("TaskFactory", body, active="generate")

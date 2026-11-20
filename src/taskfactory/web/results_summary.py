@@ -1,9 +1,8 @@
-"""Self-contained HTML for the generation result and its error pages.
+"""Self-contained HTML for the error pages and the table-only summary fallback.
 
 Every value that reaches the page is escaped. The pages load no script and no
 external resource, so they render on a phone with no network access beyond the
-one response. No image is shown yet; the accepted and rejected tasks are plain
-tables.
+one response.
 """
 
 from __future__ import annotations
@@ -43,73 +42,38 @@ def back_href(form: forms.ParsedForm | None = None) -> str:
 
 
 _STYLE = """
-:root { color-scheme: light dark; }
-* { box-sizing: border-box; }
-body {
-  margin: 0;
-  background: #f6f7f9;
-  color: #1f2933;
-  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
-  line-height: 1.45;
-}
-main { max-width: 960px; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
-h1 { font-size: 1.7rem; margin: 0 0 0.3rem; }
-h2 { font-size: 1.2rem; margin: 1.6rem 0 0.5rem; }
-.lead { margin: 0 0 1.2rem; font-size: 1.05rem; }
-.summary {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
-  gap: 0.5rem 1rem;
-  margin: 0;
-  padding: 1rem;
-  background: #ffffff;
-  border: 1px solid #d9dee5;
-  border-radius: 10px;
-}
-.summary div { margin: 0; }
-.summary dt { color: #52606d; font-size: 0.85rem; }
-.summary dd { margin: 0.1rem 0 0; font-weight: 600; }
-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: #ffffff;
-  border: 1px solid #d9dee5;
-  border-radius: 10px;
-  overflow: hidden;
-  font-size: 0.92rem;
-}
-th, td {
-  padding: 0.5rem 0.6rem;
-  border-bottom: 1px solid #e4e8ee;
-  text-align: left;
-  vertical-align: top;
-}
-th { background: #eef2f7; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.02em; }
+.summary { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 24px; margin: 0; }
+.summary div { min-width: 0; padding: 12px 0; border-bottom: 1px solid var(--border); }
+.summary dt { color: var(--muted-foreground); font-family: var(--mono); font-size: 12px; }
+.summary dd { margin: 2px 0 0; font-size: 15px; font-weight: 500; overflow-wrap: anywhere; }
+.summary dd code, td code { font-family: var(--mono); font-size: 12px; }
+table { width: 100%; border-collapse: collapse; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-control); overflow: hidden; font-size: 14px; }
+th, td { padding: 10px 12px; border-bottom: 1px solid var(--border); text-align: left; vertical-align: top; }
+th { color: var(--muted-foreground); font-family: var(--mono); font-size: 12px; font-weight: 400; }
 tr:last-child td { border-bottom: 0; }
-.empty { color: #52606d; padding: 0.7rem 0.6rem; }
-.foot { margin-top: 1.4rem; font-size: 0.95rem; }
-a { color: #1a5fb4; }
-code { font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; font-size: 0.9em; }
-.notice {
-  background: #ffffff;
-  border: 1px solid #d9dee5;
-  border-radius: 10px;
-  padding: 1.25rem;
+td code { overflow-wrap: anywhere; }
+.empty { color: var(--muted-foreground); }
+.results-section { margin-top: 40px; }
+.section-head { margin: 0 0 12px; }
+.section-head h2 { display: flex; align-items: baseline; gap: 8px; margin: 0; font-size: 20px; font-weight: 500; letter-spacing: -0.01em; }
+.count { color: var(--muted-foreground); font-family: var(--mono); font-size: 12px; font-weight: 400; }
+.foot { margin-top: 24px; }
+@media (min-width: 720px) {
+  .summary { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
-.notice p { margin: 0 0 0.8rem; }
-@media (prefers-color-scheme: dark) {
-  body { background: #14171c; color: #e6e9ee; }
-  .summary, table, .notice { background: #1c2027; border-color: #333a45; }
-  th { background: #232933; }
-  th, td { border-color: #333a45; }
-  .summary dt, .empty { color: #a7b0bd; }
-  a { color: #7cb0f0; }
+@media (max-width: 640px) {
+  thead { display: none; }
+  table, tbody, tr, td { display: block; }
+  table { border: 0; background: transparent; }
+  tr { padding: 12px 0; border-bottom: 1px solid var(--border); }
+  td { display: grid; grid-template-columns: 7rem 1fr; gap: 8px; padding: 4px 0; border: 0; }
+  td::before { content: attr(data-label); color: var(--muted-foreground); font-family: var(--mono); font-size: 11px; }
 }
 """
 
 
 def render_results(result: "GenerationResult") -> str:
-    """The whole success page: totals, accepted tasks and rejected tasks."""
+    """The summary fallback: totals, accepted tasks and rejected tasks."""
     accepted_rows = "".join(_accepted_row(task) for task in result.accepted_tasks)
     if not accepted_rows:
         accepted_rows = '<tr><td class="empty" colspan="5">No tasks were accepted.</td></tr>'
@@ -118,46 +82,52 @@ def render_results(result: "GenerationResult") -> str:
     if not rejected_rows:
         rejected_rows = '<tr><td class="empty" colspan="6">No tasks were rejected.</td></tr>'
 
-    return f"""<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>TaskFactory results</title>
-<style>{_STYLE}</style>
-</head>
-<body>
-<main>
-<h1>TaskFactory results</h1>
-<p class="lead">These tasks were generated and checked. The images and the ZIP come next.</p>
+    body = f"""<style>{_STYLE}</style>
+<section class="hero">
+<h1>Results</h1>
+<p>TaskFactory results for this run. Accepted and rejected tasks are listed below.</p>
+</section>
+
+<section class="card" aria-labelledby="summary-heading">
+<div class="card-header">
+<h2 class="card-title" id="summary-heading">Run summary</h2>
+</div>
+<div class="card-content">
 <dl class="summary">
   <div><dt>Run ID</dt><dd><code>{escape(result.run_id)}</code></dd></div>
   <div><dt>Commit</dt><dd><code>{escape(result.commit)}</code></dd></div>
-  <div><dt>Seed</dt><dd>{escape(str(result.seed))}</dd></div>
+  <div><dt>Seed</dt><dd><code>{escape(str(result.seed))}</code></dd></div>
   <div><dt>Attempted</dt><dd>{escape(str(result.attempted))}</dd></div>
   <div><dt>Accepted</dt><dd>{escape(str(result.accepted))}</dd></div>
   <div><dt>Rejected</dt><dd>{escape(str(result.rejected))}</dd></div>
-  <div><dt>Yield</dt><dd>{escape(f"{result.yield_:.4f}")}</dd></div>
+  <div><dt>Yield</dt><dd>{escape(f"{result.yield_ * 100:.1f}%")}</dd></div>
   <div><dt>Time</dt><dd>{escape(f"{result.elapsed_seconds:.1f} s")}</dd></div>
 </dl>
+</div>
+</section>
 
-<h2>Accepted tasks</h2>
+<section class="results-section" aria-labelledby="accepted-heading">
+<div class="section-head">
+<h2 id="accepted-heading">Accepted tasks <span class="count">{escape(str(result.accepted))}</span></h2>
+</div>
 <table>
 <thead><tr><th>Task</th><th>Family</th><th>Question type</th><th>Domain</th><th>Checks</th></tr></thead>
 <tbody>{accepted_rows}</tbody>
 </table>
+</section>
 
-<h2>Rejected tasks</h2>
+<section class="results-section" aria-labelledby="rejected-heading">
+<div class="section-head">
+<h2 id="rejected-heading">Rejected tasks <span class="count">{escape(str(result.rejected))}</span></h2>
+</div>
 <table>
 <thead><tr><th>Task</th><th>Family</th><th>Question type</th><th>Domain</th><th>Failed checks</th><th>Reason</th></tr></thead>
 <tbody>{rejected_rows}</tbody>
 </table>
+</section>
 
-<p class="foot"><a href="/">Back to the form</a></p>
-</main>
-</body>
-</html>
-"""
+<p class="foot"><a class="btn btn-outline" href="/">{ICONS["arrow-left"]}<span>Back to the form</span></a></p>"""
+    return page_shell("Results", body)
 
 
 def render_message(
@@ -176,15 +146,11 @@ def render_message(
     kind = "warning" if warning else "destructive"
     icon = "info" if warning else "alert-triangle"
     href = back_href(form)
-    body = f"""<div class="card error-card delay-1">
-<div class="card-header">
-<h1 class="card-title">{escape(title)}</h1>
-</div>
-<div class="card-content">
+    body = f"""<div class="error-card page-enter delay-1">
+<h1 class="error-title">{escape(title)}</h1>
 <div class="alert alert-{kind}" role="alert">{ICONS[icon]}<p>{escape(message)}</p></div>
 <div class="error-actions">
 <a class="btn btn-outline" href="{href}">{ICONS["arrow-left"]}<span>Back to the form</span></a>
-</div>
 </div>
 </div>"""
     return page_shell(title, body)
@@ -195,11 +161,11 @@ def _accepted_row(task: "TaskSummary") -> str:
     checks = f"{task.passed_checks} of {task.total_checks} checks passed"
     return (
         "<tr>"
-        f"<td><code>{escape(task.task_id)}</code></td>"
-        f"<td>{escape(task.family)}</td>"
-        f"<td>{escape(task.question_type)}</td>"
-        f"<td>{escape(task.domain)}</td>"
-        f"<td>{escape(checks)}</td>"
+        f'<td data-label="Task"><code>{escape(task.task_id)}</code></td>'
+        f'<td data-label="Family">{escape(task.family)}</td>'
+        f'<td data-label="Question type">{escape(task.question_type)}</td>'
+        f'<td data-label="Domain">{escape(task.domain)}</td>'
+        f'<td data-label="Checks">{escape(checks)}</td>'
         "</tr>"
     )
 
@@ -218,11 +184,11 @@ def _rejected_row(task: "TaskSummary") -> str:
     reason_html = "<br>".join(escape(reason) for reason in reasons)
     return (
         "<tr>"
-        f"<td><code>{escape(task.task_id)}</code></td>"
-        f"<td>{escape(task.family)}</td>"
-        f"<td>{escape(task.question_type)}</td>"
-        f"<td>{escape(task.domain)}</td>"
-        f"<td>{escape(failed_names)}</td>"
-        f"<td>{reason_html}</td>"
+        f'<td data-label="Task"><code>{escape(task.task_id)}</code></td>'
+        f'<td data-label="Family">{escape(task.family)}</td>'
+        f'<td data-label="Question type">{escape(task.question_type)}</td>'
+        f'<td data-label="Domain">{escape(task.domain)}</td>'
+        f'<td data-label="Failed checks">{escape(failed_names)}</td>'
+        f'<td data-label="Reason">{reason_html}</td>'
         "</tr>"
     )
