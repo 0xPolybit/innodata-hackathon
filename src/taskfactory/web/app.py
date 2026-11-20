@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import inspect
 import json
 import os
 import platform
@@ -14,15 +15,18 @@ from typing import Any
 from urllib.parse import parse_qs
 
 from taskfactory import __version__
-from taskfactory.web.forms import FormError, parse_form
+from taskfactory.web.forms import FormError, ParsedForm, parse_form
 from taskfactory.web.generate import (
     FAILED_MESSAGE,
     GenerationBusy,
     GenerationFailed,
+    GenerationResult,
     generate,
 )
 from taskfactory.web.render_page import render_page
-from taskfactory.web.results_summary import render_message, render_results
+from taskfactory.web.results_page import render_results_page
+from taskfactory.web.results_summary import render_message
+from taskfactory.web.zip_bundle import build_zip
 
 _SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 
@@ -109,52 +113,138 @@ def _version() -> Response:
     return _json_response("200 OK", {"version": __version__, "commit": _commit_sha()})
 
 
+class _Respond(Exception):
+    """Stop a route and return the error response this carries."""
+
+    def __init__(self, response: Response) -> None:
+        super().__init__("response ready")
+        self.response = response
+
+
 def _generate_response(environ: dict[str, Any]) -> Response:
     """POST /api/generate: validate one form body, run it and show the result."""
     try:
-        body = _read_form_body(environ)
-    except _BodyTooLarge:
-        return _html_response(
-            "413 Request Entity Too Large",
-            render_message("Request too large", TOO_LARGE_MESSAGE),
-        )
-    except OSError:
+        form, result = _run_form(environ)
+    except _Respond as stop:
+        return stop.response
+    return _html_response("200 OK", render_results_page(result, form))
+
+
+def _zip_response(environ: dict[str, Any]) -> Response:
+    """POST /api/zip: run the same form again and return the run as a ZIP."""
+    try:
+        form, result = _run_form(environ)
+    except _Respond as stop:
+        return stop.response
+
+    try:
+        data = build_zip(result.artifacts)
+    except Exception:  # never show a traceback
         traceback.print_exc()
         return _html_response(
             "500 Internal Server Error",
             render_message("Generation failed", FAILED_MESSAGE),
         )
+
+    filename = _zip_filename(result.run_id)
+    return (
+        "200 OK",
+        [
+            ("Content-Type", "application/zip"),
+            ("Content-Length", str(len(data))),
+            ("Content-Disposition", f'attachment; filename="{filename}"'),
+        ],
+        data,
+    )
+
+
+def _run_form(environ: dict[str, Any]) -> tuple[ParsedForm, GenerationResult]:
+    """Read, validate and generate one request, or raise :class:`_Respond`.
+
+    The section 9 status codes and messages live here once, so
+    ``/api/generate`` and ``/api/zip`` cannot drift apart.
+    """
+    try:
+        body = _read_form_body(environ)
+    except _BodyTooLarge as exc:
+        raise _Respond(
+            _html_response(
+                "413 Request Entity Too Large",
+                render_message("Request too large", TOO_LARGE_MESSAGE),
+            )
+        ) from exc
+    except OSError as exc:
+        traceback.print_exc()
+        raise _Respond(
+            _html_response(
+                "500 Internal Server Error",
+                render_message("Generation failed", FAILED_MESSAGE),
+            )
+        ) from exc
 
     values = parse_qs(body.decode("utf-8", "replace"), keep_blank_values=True)
     try:
         form = parse_form(values)
     except FormError as exc:
-        return _html_response(
-            "400 Bad Request",
-            render_message("Check the form", str(exc)),
-        )
+        raise _Respond(
+            _html_response(
+                "400 Bad Request",
+                render_message("Check the form", str(exc)),
+            )
+        ) from exc
 
     try:
-        result = generate(form)
+        result = _generate_with_artifacts(form)
     except GenerationBusy as exc:
-        return _html_response(
-            "503 Service Unavailable",
-            render_message("Generator busy", str(exc)),
-            [("Retry-After", "60")],
-        )
+        raise _Respond(
+            _html_response(
+                "503 Service Unavailable",
+                render_message("Generator busy", str(exc)),
+                [("Retry-After", "60")],
+            )
+        ) from exc
     except GenerationFailed as exc:
-        return _html_response(
-            "500 Internal Server Error",
-            render_message("Generation failed", str(exc)),
-        )
+        raise _Respond(
+            _html_response(
+                "500 Internal Server Error",
+                render_message("Generation failed", str(exc)),
+            )
+        ) from exc
     except Exception:  # the last line of defence: never show a traceback
         traceback.print_exc()
-        return _html_response(
-            "500 Internal Server Error",
-            render_message("Generation failed", FAILED_MESSAGE),
-        )
+        raise _Respond(
+            _html_response(
+                "500 Internal Server Error",
+                render_message("Generation failed", FAILED_MESSAGE),
+            )
+        ) from None
+    return form, result
 
-    return _html_response("200 OK", render_results(result))
+
+def _generate_with_artifacts(form: ParsedForm) -> GenerationResult:
+    """Call :func:`generate` with ``keep_artifacts`` and return its result.
+
+    A replacement that takes only the form is still called with only the form;
+    the real generator always receives the option.
+    """
+    try:
+        parameters = inspect.signature(generate).parameters.values()
+    except (TypeError, ValueError):
+        parameters = ()
+    accepts_keep_artifacts = any(
+        parameter.name == "keep_artifacts"
+        or parameter.kind is inspect.Parameter.VAR_KEYWORD
+        for parameter in parameters
+    )
+    if accepts_keep_artifacts:
+        return generate(form, keep_artifacts=True)
+    return generate(form)
+
+
+def _zip_filename(run_id: str) -> str:
+    """A safe ``taskfactory-<run_id>.zip`` name for the download."""
+    safe = re.sub(r"[^A-Za-z0-9._-]+", "_", run_id).strip("._") or "run"
+    return f"taskfactory-{safe}.zip"
 
 
 def _read_form_body(environ: dict[str, Any]) -> bytes:
@@ -186,6 +276,7 @@ _GET_ROUTES: dict[str, Callable[[], Response]] = {
 }
 _POST_ROUTES: dict[str, Callable[[dict[str, Any]], Response]] = {
     "/api/generate": _generate_response,
+    "/api/zip": _zip_response,
 }
 
 

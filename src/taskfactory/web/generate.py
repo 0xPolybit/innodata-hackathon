@@ -3,9 +3,10 @@
 One call builds the canonical run config, lays out a temporary ``configs/``
 root, runs :func:`taskfactory.pipeline.run_pipeline` there with the commit the
 site shows, reads the checks back and deletes the whole temporary folder before
-returning. Nothing is stored permanently and no image is returned or kept; the
-summary carries task ids, families, question types, domains, check outcomes
-and the SHA-256 of each ``spec.json``.
+returning. Nothing is stored permanently. By default the summary carries task
+ids, families, question types, domains, check outcomes and the SHA-256 of each
+``spec.json``; with ``keep_artifacts`` it also carries every file the run wrote
+in memory, in the same layout as the ZIP.
 
 Only one generation runs in a process at a time: the process-wide
 :data:`GENERATION_LOCK` is taken without blocking, and a second caller gets
@@ -31,18 +32,20 @@ import time
 import traceback
 from collections.abc import Iterator, Mapping
 from contextlib import contextmanager
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from taskfactory.web.build_config import build_config
+from taskfactory.web.build_config import BuiltConfig, build_config
 from taskfactory.web.forms import ParsedForm, parse_form
 
 __all__ = [
     "BUSY_MESSAGE",
     "FAILED_MESSAGE",
     "GENERATION_LOCK",
+    "MAX_ARTIFACT_BYTES",
     "OUT_OF_MEMORY_MESSAGE",
+    "RESULT_TOO_LARGE_MESSAGE",
     "TIMEOUT_MESSAGE",
     "CheckOutcome",
     "GenerationBusy",
@@ -61,6 +64,13 @@ TIMEOUT_MESSAGE = (
     "Generation took longer than the 300 second limit. Choose fewer charts and "
     "try again. The sample report still works."
 )
+RESULT_TOO_LARGE_MESSAGE = (
+    "The result is too large to send. Choose fewer charts, or open the sample report."
+)
+
+# The most artifact bytes a response may carry. The page and the ZIP both stay
+# under 4.5 MB, with room for the base64 image expansion on the page.
+MAX_ARTIFACT_BYTES = 3_500_000
 
 # Process-wide: generation renders with matplotlib and OCR and is not cheap
 # enough to run twice at once in the small hosted container.
@@ -124,7 +134,12 @@ class TaskSummary:
 
 @dataclass(frozen=True)
 class GenerationResult:
-    """The counts and per-task summaries of one generation."""
+    """The counts and per-task summaries of one generation.
+
+    ``artifacts`` is empty unless the call asked for ``keep_artifacts``. When it
+    is set, each key is a relative POSIX path such as
+    ``tasks/<id>/image.png``, and the keys are the files a ZIP of the run holds.
+    """
 
     run_id: str
     commit: str
@@ -136,6 +151,7 @@ class GenerationResult:
     elapsed_seconds: float
     accepted_tasks: tuple[TaskSummary, ...]
     rejected_tasks: tuple[TaskSummary, ...]
+    artifacts: dict[str, bytes] = field(default_factory=dict)
 
     @property
     def yield_rate(self) -> float:
@@ -158,6 +174,7 @@ def generate(
     *,
     tesseract_cmd: str | None = None,
     repo_dir: Path | None = None,
+    keep_artifacts: bool = False,
 ) -> GenerationResult:
     """Generate, check and summarise one run, then delete its temporary folder.
 
@@ -165,9 +182,14 @@ def generate(
     ``tesseract_cmd`` is passed to the OCR check; when it is None the usual
     ``TESSERACT_CMD``, install-path and PATH lookup runs. ``repo_dir`` is the
     project root holding ``configs/``; by default it is the app's repository.
+    ``keep_artifacts`` reads every file of the run into memory before the
+    temporary folder is deleted and returns it on
+    :attr:`GenerationResult.artifacts`; the folder is deleted either way.
 
     Raises :class:`GenerationBusy` when another call holds the lock and
     :class:`GenerationFailed` with a section 9 message when the run fails.
+    A kept result over :data:`MAX_ARTIFACT_BYTES` raises
+    :class:`GenerationFailed` with :data:`RESULT_TOO_LARGE_MESSAGE`.
     :class:`~taskfactory.web.forms.FormError` is raised before the lock is
     taken when a mapping does not validate.
     """
@@ -200,6 +222,10 @@ def generate(
             )
 
         accepted, rejected = _read_summaries(out_root)
+        artifacts: dict[str, bytes] = {}
+        if keep_artifacts:
+            artifacts = _collect_artifacts(out_root, built, form, commit, metrics)
+            _check_artifact_budget(artifacts)
         return GenerationResult(
             run_id=built.run_id,
             commit=commit,
@@ -211,7 +237,10 @@ def generate(
             elapsed_seconds=time.perf_counter() - started,
             accepted_tasks=accepted,
             rejected_tasks=rejected,
+            artifacts=artifacts,
         )
+    except GenerationFailed:
+        raise
     except (MemoryError, TimeoutError, OSError) as exc:
         if isinstance(exc, TimeoutError):
             raise GenerationFailed(TIMEOUT_MESSAGE) from exc
@@ -300,6 +329,162 @@ def _project_root() -> Path:
     from taskfactory.web.app import _repo_root
 
     return _repo_root()
+
+
+def _collect_artifacts(
+    out_root: Path,
+    built: BuiltConfig,
+    form: ParsedForm,
+    commit: str,
+    metrics: Mapping[str, Any],
+) -> dict[str, bytes]:
+    """Read every file of the run into an ordered ``{relative_path: bytes}``.
+
+    The layout is the one the ZIP uses: the package files under ``tasks/`` and
+    ``rejected/``, the three pipeline indices, a ``run.json`` built from values
+    the run already recorded, and a plain-English ``README.txt``.
+    """
+    artifacts: dict[str, bytes] = {}
+    for folder_name in ("tasks", "rejected"):
+        folder = out_root / folder_name
+        if not folder.is_dir():
+            continue
+        for package in sorted(
+            (item for item in folder.iterdir() if item.is_dir()),
+            key=lambda item: item.name,
+        ):
+            for path in sorted(
+                (item for item in package.rglob("*") if item.is_file()),
+                key=lambda item: item.as_posix(),
+            ):
+                key = path.relative_to(out_root).as_posix()
+                data = _read_bytes(path)
+                if data is not None:
+                    artifacts[key] = data
+
+    for name in ("tasks.jsonl", "validation.jsonl", "metrics.json"):
+        data = _read_bytes(out_root / name)
+        artifacts[name] = data if data is not None else b""
+
+    artifacts["run.json"] = _json_bytes(_run_info(out_root, form, commit, metrics))
+    artifacts["README.txt"] = _readme_text(built, form, commit).encode("utf-8")
+    return dict(sorted(artifacts.items()))
+
+
+def _run_info(
+    out_root: Path,
+    form: ParsedForm,
+    commit: str,
+    metrics: Mapping[str, Any],
+) -> dict[str, Any]:
+    """The ``run.json`` payload from values the run already recorded.
+
+    The config hash and commit come from the pipeline's metrics, the versions
+    from a package manifest, and the Tesseract version from the OCR check's
+    validation record. Nothing is guessed; a value that the run did not record
+    is left out.
+    """
+    info: dict[str, Any] = {
+        "commit": commit,
+        "config_hash": _text(metrics.get("config_hash")),
+        "seed": form.seed,
+    }
+
+    for package in _package_folders(out_root):
+        manifest = _read_json(package / "manifest.json")
+        if not isinstance(manifest, dict):
+            continue
+        versions = manifest.get("versions")
+        if isinstance(versions, dict) and versions:
+            info["versions"] = dict(versions)
+            break
+
+    tesseract = _tesseract_version(out_root)
+    if tesseract:
+        info["tesseract_version"] = tesseract
+    return info
+
+
+def _package_folders(out_root: Path) -> Iterator[Path]:
+    """Yield every package folder, accepted first, each in name order."""
+    for folder_name in ("tasks", "rejected"):
+        folder = out_root / folder_name
+        if not folder.is_dir():
+            continue
+        for package in sorted(
+            (item for item in folder.iterdir() if item.is_dir()),
+            key=lambda item: item.name,
+        ):
+            yield package
+
+
+def _tesseract_version(out_root: Path) -> str:
+    """The Tesseract version a package's OCR check recorded, or the empty string."""
+    for package in _package_folders(out_root):
+        validation = _read_json(package / "validation.json")
+        if not isinstance(validation, dict):
+            continue
+        checks = validation.get("checks")
+        if not isinstance(checks, list):
+            continue
+        for item in checks:
+            if not isinstance(item, dict) or item.get("check") != "4_ocr":
+                continue
+            details = item.get("details")
+            if not isinstance(details, dict):
+                continue
+            version = details.get("tesseract_version")
+            if isinstance(version, str) and version and version != "unknown":
+                return version
+    return ""
+
+
+def _readme_text(built: BuiltConfig, form: ParsedForm, commit: str) -> str:
+    """A plain-English README for one run, with no keys or secrets."""
+    return f"""TaskFactory run {built.run_id}
+
+This folder holds one TaskFactory generation: a chart picture for each task,
+the question and exact answer, the result of every check, and the totals for
+the run. Everything here was made from the form choices and the seed below.
+
+Run id: {built.run_id}
+Seed: {form.seed}
+Commit: {commit}
+
+What is in this folder
+  tasks/<id>/       an accepted task: image.png, spec.json, task.json,
+                    text_boxes.json, validation.json and manifest.json
+  rejected/<id>/    a task that failed at least one check, with the same files
+                    and the failing result in validation.json
+  tasks.jsonl       one line per accepted task, with its question and answer
+  validation.jsonl  one line per generated task, with its failed checks
+  metrics.json      the run totals, per-check counts and variation metrics
+  run.json          the seed, config hash, commit, versions and Tesseract version
+                    when the run recorded one
+
+How to check this run
+  Unpack the ZIP, then on a machine with TaskFactory run:
+
+      tf diff <this folder> <another run folder>
+
+  The command compares the accepted packages and tasks.jsonl. A run of the same
+  form, seed and commit gives the same tasks, questions and answers; PNG bytes
+  can differ between machines, so compare the JSON files across machines.
+
+This folder holds no model keys, no .env values and no benchmark data.
+"""
+
+
+def _json_bytes(value: Any) -> bytes:
+    """The sorted-key, two-space-indented JSON the run files use."""
+    return (json.dumps(value, indent=2, sort_keys=True) + "\n").encode("utf-8")
+
+
+def _check_artifact_budget(artifacts: Mapping[str, bytes]) -> None:
+    """Refuse a kept result over :data:`MAX_ARTIFACT_BYTES` with the section 9 message."""
+    total = sum(len(data) for data in artifacts.values())
+    if total > MAX_ARTIFACT_BYTES:
+        raise GenerationFailed(RESULT_TOO_LARGE_MESSAGE)
 
 
 def _read_summaries(
