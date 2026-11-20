@@ -323,6 +323,60 @@ def test_model_table_shows_stopped_reason_and_attempted_counts(run_dirs: dict[st
     assert "50.0%" in section  # gemini: 1 of 2 attempted
 
 
+def test_accuracy_shows_its_wilson_interval_when_the_metrics_record_one(run_dirs: dict[str, Any]) -> None:
+    digest = hashlib.sha256((run_dirs["eval"] / "items.jsonl").read_bytes()).hexdigest()
+    _write_json(
+        run_dirs["eval"] / "benchmark_metrics.json",
+        {
+            "eval_set_items": 2,
+            "eval_set_sha256": digest,
+            "max_tokens": 1024,
+            "models": {
+                "model-ci": {
+                    "accuracy": 0.975,
+                    "accuracy_ci95_high": 0.9893,
+                    "accuracy_ci95_low": 0.9428,
+                    "accuracy_by_family": {
+                        "bar": {
+                            "accuracy": 0.975,
+                            "accuracy_ci95_high": 0.9893,
+                            "accuracy_ci95_low": 0.9428,
+                            "n_correct": 195,
+                            "n_items_attempted": 200,
+                        },
+                    },
+                    "accuracy_by_task_type": {
+                        "value_lookup": {
+                            "accuracy": 0.75,
+                            "accuracy_ci95_high": None,
+                            "accuracy_ci95_low": None,
+                            "n_correct": 3,
+                            "n_items_attempted": 4,
+                        },
+                    },
+                    "error_label_counts": {"wrong_value": 5},
+                    "model_id": "model-ci",
+                    "n_correct": 195,
+                    "n_items_attempted": 200,
+                    "n_items_in_run": 200,
+                    "n_items_not_attempted": 0,
+                    "provider": "gemini",
+                    "provider_error_count": 0,
+                    "stopped_reason": None,
+                },
+            },
+        },
+    )
+
+    section = _section(_page(run_dirs), "benchmark")
+
+    # The model row and the family row each carry the two recorded bounds.
+    assert section.count("97.5% (95% CI 94.3 to 98.9)") == 2
+    # A missing interval leaves the accuracy alone, even though the counts could imply one.
+    assert "75.0%" in section
+    assert "75.0% (95% CI" not in section
+
+
 def test_variation_prints_targets_and_actual_status(run_dirs: dict[str, Any]) -> None:
     section = _section(_page(run_dirs), "variation")
     assert "2 of 4 bins" in section  # only the 40% bins reach 15%, and the target asks for three

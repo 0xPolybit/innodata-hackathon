@@ -5,7 +5,7 @@ a rerun makes no network call for an answer it already has. Grading is determini
 no model. Output under ``out_dir``::
 
     results/<safe model id>.jsonl   one line per item asked, with its grade
-    benchmark_metrics.json          counts, accuracy and error labels per model
+    benchmark_metrics.json          counts, accuracy with its 95% Wilson interval, and error labels per model
 
 Standard library only.
 """
@@ -13,6 +13,7 @@ Standard library only.
 from __future__ import annotations
 
 import json
+import math
 import os
 import re
 from collections.abc import Iterable, Mapping, MutableMapping, Sequence
@@ -45,6 +46,7 @@ __all__ = [
     "load_api_keys",
     "run_benchmark",
     "run_eval",
+    "wilson_interval",
 ]
 
 PROMPT_HEAD = (
@@ -479,8 +481,34 @@ def _redact(text: str, secrets: Iterable[str]) -> str:
 # --- metrics -------------------------------------------------------------------------------
 
 
+Z_95 = 1.959964  # two-sided 95% normal quantile
+
+
+def wilson_interval(successes: int, n: int) -> tuple[float | None, float | None]:
+    """The 95% Wilson score interval for ``successes`` answered correctly out of ``n`` attempted.
+
+    Returns ``(low, high)``, each rounded to four places, or ``(None, None)`` when ``n`` is zero.
+    The score interval stays inside 0 to 1 and is not degenerate at 100%, unlike the normal
+    approximation. Both ends are proportions, not percentages.
+    """
+    if n == 0:
+        return (None, None)
+    p = successes / n
+    z2 = Z_95 * Z_95
+    denominator = 1 + z2 / n
+    centre = p + z2 / (2 * n)
+    margin = Z_95 * math.sqrt(p * (1 - p) / n + z2 / (4 * n * n))
+    return (round((centre - margin) / denominator, 4), round((centre + margin) / denominator, 4))
+
+
 def _ratio(numerator: int, denominator: int) -> float | None:
     return None if denominator == 0 else round(numerator / denominator, 4)
+
+
+def _accuracy_fields(successes: int, n: int) -> dict[str, Any]:
+    """The accuracy of one entry and the two ends of its 95% Wilson interval."""
+    low, high = wilson_interval(successes, n)
+    return {"accuracy": _ratio(successes, n), "accuracy_ci95_low": low, "accuracy_ci95_high": high}
 
 
 def _group_accuracy(records: Sequence[Mapping[str, Any]], key: str) -> dict[str, dict[str, Any]]:
@@ -489,7 +517,7 @@ def _group_accuracy(records: Sequence[Mapping[str, Any]], key: str) -> dict[str,
         groups.setdefault(str(record[key]), []).append(bool(record["correct"]))
     return {
         name: {
-            "accuracy": _ratio(sum(flags), len(flags)),
+            **_accuracy_fields(sum(flags), len(flags)),
             "n_correct": sum(flags),
             "n_items_attempted": len(flags),
         }
@@ -511,7 +539,7 @@ def _summarise(
         if record["error_label"] is not None:
             label_counts[str(record["error_label"])] += 1
     return {
-        "accuracy": _ratio(correct, attempted),
+        **_accuracy_fields(correct, attempted),
         "accuracy_by_family": _group_accuracy(records, "family"),
         "accuracy_by_task_type": _group_accuracy(records, "task_type"),
         "error_label_counts": label_counts,

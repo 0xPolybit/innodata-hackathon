@@ -13,7 +13,8 @@ into an output folder. It reads the files a run leaves behind and runs nothing:
 
 The page has one embedded stylesheet, no script and no link to anything outside its folder.
 Every value read from a file is escaped with :func:`html.escape`. Rates are rounded to four
-places and shown as percentages with one decimal. It imports only the standard library and
+places and shown as percentages with one decimal, and each benchmark accuracy is followed by its
+95% Wilson score interval. It imports only the standard library and
 :func:`taskfactory.llm.safe_model_id`, so it runs without OpenCV, Pillow or matplotlib.
 """
 
@@ -427,6 +428,28 @@ def _pct(value: object) -> str:
     if rate is None:
         return NA
     return f"{_one_decimal(rate * 100)}%"
+
+
+def _pct_ci(rate: object, low: object, high: object) -> str:
+    """A rate as a percentage, followed by its 95% interval when both ends are numbers.
+
+    "97.5% (95% CI 94.3 to 98.9)". With either end missing, the rate alone is shown.
+    """
+    text = _pct(rate)
+    low_rate = _rounded(low)
+    high_rate = _rounded(high)
+    if low_rate is None or high_rate is None:
+        return text
+    return f"{text} (95% CI {_one_decimal(low_rate * 100)} to {_one_decimal(high_rate * 100)})"
+
+
+def _accuracy_text(entry: Mapping[str, Any]) -> str:
+    """The accuracy of a benchmark entry, with its Wilson interval when the entry records one."""
+    return _pct_ci(
+        entry.get("accuracy"),
+        entry.get("accuracy_ci95_low"),
+        entry.get("accuracy_ci95_high"),
+    )
 
 
 def _share_pct(part: int, whole: int) -> str:
@@ -870,7 +893,7 @@ def _group_table(title: str, groups: Mapping[str, Any]) -> str:
             [
                 name,
                 f"{_count(group.get('n_correct'))} / {_count(group.get('n_items_attempted'))}",
-                _pct(rate),
+                _accuracy_text(group),
                 _bar(rate, f"{name}: {_pct(rate)}"),
             ]
         )
@@ -908,7 +931,7 @@ def _benchmark_section(
                 model_id,
                 _or_na(entry.get("provider")),
                 ROLE,
-                _pct(entry.get("accuracy")),
+                _accuracy_text(entry),
                 f"{_count(entry.get('n_correct'))} / {_count(entry.get('n_items_attempted'))}",
                 _count(entry.get("n_items_not_attempted")),
                 entry.get("stopped_reason") or "none",
@@ -937,8 +960,9 @@ def _benchmark_section(
         )
         parts.append(
             '<p class="small">Accuracy is correct answers divided by items attempted; items not attempted '
-            "are left out of both counts. The results-date column is blank where a model's results file "
-            "records no date.</p>"
+            "are left out of both counts. Each accuracy is followed by its 95% Wilson score interval, "
+            "computed from the same two counts. The results-date column is blank where a model's results "
+            "file records no date.</p>"
         )
     else:
         parts.append("<p>No model results are recorded.</p>")

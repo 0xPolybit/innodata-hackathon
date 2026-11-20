@@ -21,6 +21,7 @@ from taskfactory.benchmark import (
     load_api_keys,
     run_benchmark,
     run_eval,
+    wilson_interval,
 )
 from taskfactory.evalset import build_eval_set, load_eval_set
 from taskfactory.llm import ModelError, RateLimited, Reply
@@ -374,6 +375,19 @@ def test_error_labels_are_the_five_documented_ones() -> None:
     assert ERROR_LABELS == ("empty", "refusal_or_long", "wrong_entity", "wrong_value", "other")
 
 
+# --- the Wilson accuracy interval ------------------------------------------------------------
+
+
+def test_wilson_interval_is_the_95_percent_score_interval() -> None:
+    # Computed with z = 1.959964, rounded to four places.
+    assert wilson_interval(195, 200) == (0.9428, 0.9893)  # a 97.5% rate
+    assert wilson_interval(191, 200) == (0.9167, 0.9761)  # a 95.5% rate
+
+
+def test_wilson_interval_is_none_when_nothing_was_attempted() -> None:
+    assert wilson_interval(0, 0) == (None, None)
+
+
 # --- running the models ---------------------------------------------------------------------
 
 
@@ -411,7 +425,13 @@ def test_every_item_is_graded_and_counted(
         "wrong_entity": 1,
         "wrong_value": 1,
     }
-    assert entry["accuracy_by_family"]["bar"] == {"accuracy": 0.3333, "n_correct": 1, "n_items_attempted": 3}
+    assert entry["accuracy_by_family"]["bar"] == {
+        "accuracy": 0.3333,
+        "accuracy_ci95_high": 0.7923,
+        "accuracy_ci95_low": 0.0615,
+        "n_correct": 1,
+        "n_items_attempted": 3,
+    }
     assert entry["accuracy_by_task_type"]["series_at_x"]["n_correct"] == 1
     assert entry["stopped_reason"] is None
     assert entry["provider_error_count"] == 0
@@ -549,6 +569,7 @@ def test_metrics_file_has_sorted_keys_no_timestamps_and_four_decimal_accuracy(
     for entry in data["models"].values():
         assert entry["accuracy"] == round(entry["n_correct"] / entry["n_items_attempted"], 4)
         assert entry["accuracy"] == round(entry["accuracy"], 4)
+        assert entry["accuracy_ci95_low"] < entry["accuracy"] < entry["accuracy_ci95_high"]
 
 
 def test_only_model_updates_its_entry_and_keeps_the_others(
