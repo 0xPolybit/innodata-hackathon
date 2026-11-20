@@ -145,13 +145,16 @@ def run_pipeline(
     repo_dir: Path = Path("."),
     *,
     overwrite: bool = False,
+    git_sha: str | None = None,
 ) -> dict[str, Any]:
     """Generate and check every implemented task of one run config.
 
     The config folder's parent is the configs root: ``configs/runs/demo.toml``
     loads ``configs/domains/<name>.toml`` and ``configs/blocklist.txt``.
     ``tesseract_cmd`` is passed to the OCR check; ``repo_dir`` is where the git
-    sha is read from.
+    sha is read from unless ``git_sha`` is given. An explicit ``git_sha`` is
+    what the app shows and writes to the manifest and metrics, so the hosted
+    commit and the packages agree even when git is unavailable.
 
     Returns the metrics dict that is also written to ``out_root/metrics.json``.
     ``skipped`` holds one entry per distinct reason.
@@ -176,7 +179,7 @@ def run_pipeline(
 
     _prepare_out_root(out_root, overwrite)
     config_hash = compute_config_hash(run_config_path)
-    git_sha = get_git_sha(repo_dir)
+    commit_sha = git_sha if git_sha is not None else get_git_sha(repo_dir)
     min_margin = run_cfg.checks.get("ambiguity_min_margin", _DEFAULT_MIN_MARGIN)
     min_font_px = run_cfg.checks.get("min_font_px", _DEFAULT_MIN_FONT_PX)
 
@@ -203,7 +206,9 @@ def run_pipeline(
                     if task is None:
                         # Not a question of this family, or too close to ask: no package.
                         continue
-                    staged = _stage_package(staging_root, spec, task, config_hash, git_sha)
+                    staged = _stage_package(
+                        staging_root, spec, task, config_hash, commit_sha
+                    )
                     picture_hash = variation.phash(staged / _PACKAGE_IMAGE)
                     kept = kept_hashes.setdefault((family, task["task_type"]), [])
                     if _is_near_duplicate(picture_hash, kept, near_dup_max):
@@ -263,7 +268,7 @@ def run_pipeline(
     metrics: dict[str, Any] = {
         "config_hash": config_hash,
         "generated": generated,
-        "git_sha": git_sha,
+        "git_sha": commit_sha,
         "near_duplicates_removed": near_duplicates,
         "passed": passed_count,
         "per_check": per_check,
