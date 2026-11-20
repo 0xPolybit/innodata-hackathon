@@ -11,6 +11,8 @@ from __future__ import annotations
 from html import escape
 from typing import TYPE_CHECKING
 
+from taskfactory.web.theme import ICONS, page_shell
+
 if TYPE_CHECKING:  # avoids importing the generator at page-render time
     from taskfactory.web.generate import GenerationResult, TaskSummary
 
@@ -135,26 +137,26 @@ def render_results(result: "GenerationResult") -> str:
 
 
 def render_message(title: str, message: str) -> str:
-    """A small self-contained page for a validation or generation failure."""
-    return f"""<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{escape(title)} - TaskFactory</title>
-<style>{_STYLE}</style>
-</head>
-<body>
-<main>
-<h1>{escape(title)}</h1>
-<div class="notice">
-<p>{escape(message)}</p>
-<p><a href="/">Back to the form</a></p>
+    """A designed page for a validation, busy or generation failure.
+
+    The words are the caller's, unchanged and escaped. A busy generator and a
+    spent compute allowance are warnings; every other failure is destructive.
+    """
+    warning = title in {"Generator busy", "Compute limit reached"}
+    kind = "warning" if warning else "destructive"
+    icon = "info" if warning else "alert-triangle"
+    body = f"""<div class="card error-card delay-1">
+<div class="card-header">
+<h1 class="card-title">{escape(title)}</h1>
 </div>
-</main>
-</body>
-</html>
-"""
+<div class="card-content">
+<div class="alert alert-{kind}" role="alert">{ICONS[icon]}<p>{escape(message)}</p></div>
+<div class="error-actions">
+<a class="btn btn-outline" href="/">{ICONS["arrow-left"]}<span>Back to the form</span></a>
+</div>
+</div>
+</div>"""
+    return page_shell(title, body)
 
 
 def _accepted_row(task: "TaskSummary") -> str:

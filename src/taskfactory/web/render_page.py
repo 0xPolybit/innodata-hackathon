@@ -1,14 +1,27 @@
-"""Render the single-page TaskFactory form as one self-contained HTML document."""
+"""Render the TaskFactory form page on top of the shared design system."""
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from html import escape
 from typing import Any
 
-from taskfactory.web.forms import MAX_TASKS, default_task_count, render_form_fields
+from taskfactory.web.forms import (
+    CHARTS_PER_TYPE_MAX,
+    CHARTS_PER_TYPE_MIN,
+    CHART_TYPES,
+    DIFFICULTIES,
+    FORM_DEFAULTS,
+    MAX_TASKS,
+    QUESTION_TYPES,
+    SEED_MAX,
+    SEED_MIN,
+    TOPICS,
+    default_task_count,
+)
+from taskfactory.web.theme import ICONS, REPO_URL, page_shell
 
-REPO_URL = "https://github.com/0xPolybit/innodata-hackathon"
+__all__ = ["COLD_START_MESSAGE", "REPO_URL", "render_page"]
 
 # A note on the form, not an error: the container may need to boot before the
 # first request is answered. The 60 seconds is the plan's estimate.
@@ -16,105 +29,177 @@ COLD_START_MESSAGE = (
     "Starting the demo. The first request can take up to 60 seconds."
 )
 
-_STYLE = """
-:root { color-scheme: light dark; }
-* { box-sizing: border-box; }
-body {
-  margin: 0;
-  background: #f6f7f9;
-  color: #1f2933;
-  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
-  line-height: 1.45;
+# The form's plain-English labels. The submitted values stay the ones in
+# forms.QUESTION_TYPES; only the words shown beside them change.
+QUESTION_LABELS = {
+    "value_lookup": "Value lookup",
+    "extremum": "Extremum (highest/lowest)",
+    "rank_k": "Rank (nth)",
+    "pair_compare": "Pair comparison",
+    "series_at_x": "Series at x",
 }
-main { max-width: 640px; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
-h1 { font-size: 1.8rem; margin: 0 0 0.4rem; }
-.intro { margin: 0 0 1.6rem; font-size: 1.05rem; }
-form {
-  background: #ffffff;
-  border: 1px solid #d9dee5;
-  border-radius: 10px;
-  padding: 1.25rem;
-}
-.field { border: 0; margin: 0 0 1.15rem; padding: 0; }
-legend, label { font-weight: 600; }
-legend { margin-bottom: 0.35rem; padding: 0; }
-input[type="number"] {
-  display: block;
-  width: 100%;
-  margin-top: 0.3rem;
-  padding: 0.55rem 0.65rem;
-  border: 1px solid #b8c0cc;
-  border-radius: 6px;
-  background: #ffffff;
-  color: inherit;
-  font: inherit;
-  font-size: 1rem;
-}
-.choice {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin: 0.3rem 0;
-  font-weight: 400;
-}
-.choice input { width: 1.1rem; height: 1.1rem; margin: 0; }
-.hint { margin: 0.35rem 0 0; color: #52606d; font-size: 0.9rem; }
-button {
-  width: 100%;
-  margin-top: 0.4rem;
-  padding: 0.75rem 1rem;
-  border: 0;
-  border-radius: 7px;
-  background: #1a5fb4;
-  color: #ffffff;
-  font: inherit;
-  font-size: 1.05rem;
-  font-weight: 600;
-  cursor: pointer;
-}
-button:hover { background: #164d92; }
-.foot { margin-top: 1.1rem; font-size: 0.95rem; }
-a { color: #1a5fb4; }
-@media (min-width: 560px) {
-  main { padding-top: 2.5rem; }
-  fieldset.field:has(.choice) { display: grid; grid-template-columns: 1fr 1fr; }
-  fieldset.field:has(.choice) legend,
-  fieldset.field:has(.choice) .hint { grid-column: 1 / -1; }
-  button { width: auto; min-width: 12rem; }
-}
-@media (prefers-color-scheme: dark) {
-  body { background: #14171c; color: #e6e9ee; }
-  form { background: #1c2027; border-color: #333a45; }
-  input[type="number"] { background: #14171c; border-color: #4b5563; }
-  .hint { color: #a7b0bd; }
-  a { color: #7cb0f0; }
-}
-"""
+
+
+def _merged(values: Mapping[str, Any] | None) -> dict[str, Any]:
+    """The form defaults, overridden by ``values`` when it is given."""
+    merged = dict(FORM_DEFAULTS)
+    if values:
+        merged.update(values)
+    return merged
+
+
+def _chosen(value: Any) -> list[str]:
+    """The selected names from a scalar or a sequence."""
+    if isinstance(value, str):
+        return [value]
+    if isinstance(value, Sequence):
+        return [str(item) for item in value]
+    return []
+
+
+def _section_title(icon: str, text: str) -> str:
+    """One small heading with its icon above a group of fields."""
+    return f'<div class="section-title">{ICONS[icon]}<span>{escape(text)}</span></div>'
+
+
+def _number_field(
+    name: str,
+    label: str,
+    value: Any,
+    minimum: int,
+    maximum: int,
+    hint: str,
+    icon: str,
+) -> str:
+    """A labelled number input with a hint."""
+    return "\n".join(
+        [
+            '<div class="field">',
+            f'<label class="label" for="{name}">{ICONS[icon]}<span>{escape(label)}</span></label>',
+            (
+                f'<input class="input" id="{name}" name="{name}" type="number" '
+                f'min="{minimum}" max="{maximum}" value="{escape(str(value))}" required>'
+            ),
+            f'<p class="hint">{escape(hint)}</p>',
+            "</div>",
+        ]
+    )
+
+
+def _choice_field(
+    name: str,
+    legend: str,
+    options: Mapping[str, str],
+    chosen: Sequence[str],
+    kind: str,
+    icon: str,
+    hint: str = "",
+    sentinel: bool = False,
+) -> str:
+    """A pill-style radio or checkbox group.
+
+    A checkbox group carries a hidden empty value with the same name, so an
+    unchecked group submits an empty value instead of disappearing. That is
+    what lets the server tell "nothing picked" from a field never sent.
+    """
+    lines = [
+        '<fieldset class="field">',
+        f'<legend class="label">{ICONS[icon]}<span>{escape(legend)}</span></legend>',
+    ]
+    if sentinel:
+        lines.append(f'<input type="hidden" name="{name}" value="">')
+    lines.append('<div class="checkbox-group">')
+    for option, label in options.items():
+        checked = " checked" if option in chosen else ""
+        lines.append(
+            f'<label class="checkbox"><input type="{kind}" name="{name}" '
+            f'value="{escape(option)}"{checked}><span>{escape(label)}</span></label>'
+        )
+    lines.append("</div>")
+    if hint:
+        lines.append(f'<p class="hint">{escape(hint)}</p>')
+    lines.append("</fieldset>")
+    return "\n".join(lines)
+
+
+def _image_toggle(checked: bool) -> str:
+    """The question-in-image checkbox, styled as one pill."""
+    state = " checked" if checked else ""
+    return "\n".join(
+        [
+            '<fieldset class="field">',
+            f'<legend class="label">{ICONS["image"]}<span>Print question on image</span></legend>',
+            '<div class="checkbox-group">',
+            (
+                '<label class="checkbox"><input type="checkbox" '
+                f'name="question_in_image" value="on"{state}><span>On</span></label>'
+            ),
+            "</div>",
+            '<p class="hint">The exact answer is always printed.</p>',
+            "</fieldset>",
+        ]
+    )
+
+
+def _form(values: Mapping[str, Any] | None) -> str:
+    """The whole form: Dataset, Charts and Questions groups and the button."""
+    merged = _merged(values)
+    question_labels = {name: QUESTION_LABELS[name] for name in QUESTION_TYPES}
+    return f"""<form method="post" action="/api/generate">
+{_section_title("database", "Dataset")}
+<div class="form-grid">
+{_number_field("seed", "Seed", merged["seed"], SEED_MIN, SEED_MAX, "Same seed, same charts", "sliders-horizontal")}
+{_number_field("charts_per_type", "Charts per type", merged["charts_per_type"], CHARTS_PER_TYPE_MIN, CHARTS_PER_TYPE_MAX, "Between 1 and 6 charts for each selected type.", "list-checks")}
+{_choice_field("topic", "Topic", TOPICS, _chosen(merged["topic"]), "radio", "database", "Synthetic data for one domain.")}
+{_choice_field("difficulty", "Difficulty", DIFFICULTIES, _chosen(merged["difficulty"]), "radio", "gauge", "Standard or harder thresholds for the checks.")}
+</div>
+<hr class="separator">
+{_section_title("image", "Charts")}
+<div class="form-grid">
+{_choice_field("chart_types", "Chart types", CHART_TYPES, _chosen(merged["chart_types"]), "checkbox", "list-checks", "Choose at least one. Bar charts carry four question types; line charts carry the series question.", sentinel=True)}
+{_image_toggle(bool(merged["question_in_image"]))}
+</div>
+<hr class="separator">
+{_section_title("list-checks", "Questions")}
+{_choice_field("question_types", "Question types", question_labels, _chosen(merged["question_types"]), "checkbox", "list-checks", "Choose at least one. Series at x needs line charts.", sentinel=True)}
+<p class="hint">About {default_task_count()} tasks with these defaults. A choice above {MAX_TASKS} tasks is refused.</p>
+<div class="form-actions">
+<button class="btn btn-primary btn-lg" type="submit">{ICONS["play"]}<span>Generate charts</span></button>
+</div>
+</form>"""
 
 
 def render_page(values: Mapping[str, Any] | None = None) -> str:
-    """The whole page: intro, form and the link to the sample report."""
-    fields = render_form_fields(values)
-    return f"""<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>TaskFactory</title>
-<style>{_STYLE}</style>
-</head>
-<body>
-<main>
-<h1>TaskFactory</h1>
-<p class="intro">TaskFactory builds chart questions with exact answers, ready to check and use for benchmarking vision models.</p>
-<p class="hint">About {default_task_count()} tasks with these defaults. A choice above {MAX_TASKS} tasks is refused.</p>
-<form method="post" action="/api/generate">
-{fields}
-<button type="submit">Generate</button>
-</form>
-<p class="foot">{escape(COLD_START_MESSAGE)}</p>
-<p class="foot"><a href="{REPO_URL}">Sample report</a></p>
-</main>
-</body>
-</html>
-"""
+    """The form page: hero, the build card, the cold-start note and features."""
+    body = f"""<section class="hero">
+<span class="badge">{ICONS["database"]}<span>Free chart-question factory</span></span>
+<h1>Make chart questions with exact answers</h1>
+<p>Charts are drawn from seeded data, so every answer is known exactly. Seven checks run without AI, and any chart that fails is shown with the reason it was rejected.</p>
+</section>
+
+<div class="card delay-1">
+<div class="card-header">
+<h2 class="card-title">{ICONS["sliders-horizontal"]}<span>Build a set of charts</span></h2>
+<p class="card-description">Defaults give about {default_task_count()} tasks. Change anything, then press Generate.</p>
+</div>
+<div class="card-content">
+{_form(values)}
+<div class="alert alert-info" role="status">{ICONS["info"]}<p>{escape(COLD_START_MESSAGE)}</p></div>
+</div>
+</div>
+
+<div class="stats">
+<div class="stat delay-1">
+<h3>{ICONS["check-circle"]}<span>Exact answers</span></h3>
+<p>Every answer comes from the seeded data, not from an AI guess.</p>
+</div>
+<div class="stat delay-2">
+<h3>{ICONS["list-checks"]}<span>Seven checks</span></h3>
+<p>Text size, clarity, pixel reader, OCR read-back and redraw tests on each task.</p>
+</div>
+<div class="stat delay-2">
+<h3>{ICONS["gauge"]}<span>Free to run</span></h3>
+<p>No billing and no keys. The checks run locally in plain code.</p>
+</div>
+</div>"""
+    return page_shell("TaskFactory", body, active="generate")
