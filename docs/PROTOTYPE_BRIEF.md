@@ -31,7 +31,6 @@ Not built: floor plans, the `generate`, `validate`, `score` and `diff` commands,
 | pytest | Test suite | Open source | No |
 | Google AI Studio (Gemini API) | Benchmark: Gemini 3.1 and 3.5 Flash-Lite | Free tier; API key only | No |
 | OpenRouter `:free` models | Benchmark: Nemotron vision model | Free models; key only; no credit purchase | No |
-| Ollama with Gemma 3 4B | Secondary local check only; never decides validity | Runs on our own laptop | No |
 | Plain files and JSONL | Tasks, answers, caches, manifests | No database | No |
 | Static HTML | Report | Plain files, no server | No |
 | GitHub repo and GitHub Pages | Code and report link | Free for public repos | No |

@@ -21,7 +21,7 @@ from taskfactory.llm import ModelClient, ModelError, RateLimited, Reply
 FAKE_KEY = "TESTKEY-123"
 PNG = b"\x89PNG\r\n\x1a\nfake-image-bytes"
 PNG_B64 = base64.b64encode(PNG).decode("ascii")
-NO_THROTTLE = {"gemini": 0.0, "openrouter": 0.0, "ollama": 0.0}
+NO_THROTTLE = {"gemini": 0.0, "openrouter": 0.0}
 REAL_SEND = llm._send  # saved before the autouse fixture replaces it
 PROVIDER_KEYS = [
     ("gemini", "gemini-2.5-flash", "GEMINI_API_KEY"),
@@ -29,7 +29,6 @@ PROVIDER_KEYS = [
 ]
 GEMINI_OK = {"candidates": [{"content": {"parts": [{"text": "a cat"}]}}]}
 OPENROUTER_OK = {"choices": [{"message": {"content": "a cat"}}]}
-OLLAMA_OK = {"model": "llava", "response": "a cat", "done": True}
 
 
 class FakeSend:
@@ -94,7 +93,7 @@ def write_png(tmp_path: Path, name: str = "page.png", data: bytes = PNG) -> Path
     return path
 
 
-def cache_file(tmp_path: Path, model_id: str = "llava") -> Path:
+def cache_file(tmp_path: Path, model_id: str = "gpt-4o-mini") -> Path:
     return tmp_path / "eval" / model_id / "responses.jsonl"
 
 
@@ -181,37 +180,19 @@ def test_openrouter_request_has_the_data_url(tmp_path: Path, monkeypatch: pytest
     assert reply.text == "a cat" and reply.provider == "openrouter"
 
 
-def test_ollama_request_has_an_images_list_and_no_key(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    image = write_png(tmp_path)
-    fake = FakeSend(ok(OLLAMA_OK))
-    monkeypatch.setattr(llm, "_send", fake)
-
-    reply = client_for(tmp_path).call("llava", "ollama", "what is this", image_path=image, max_tokens=32)
-
-    req = fake.requests[0]
-    assert req.full_url == "http://localhost:11434/api/generate"
-    assert body_of(req) == {
-        "model": "llava",
-        "prompt": "what is this",
-        "images": [PNG_B64],
-        "stream": False,
-        "options": {"temperature": 0, "num_predict": 32},
-    }
-    assert set(headers_of(req)) == {"content-type"}
-    assert reply.text == "a cat"
-
-
 # --- cache -------------------------------------------------------------------------------
 
 
 def test_cache_miss_then_hit_makes_exactly_one_network_call(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    fake = FakeSend(ok(OLLAMA_OK))
+    fake = FakeSend(ok(OPENROUTER_OK))
     monkeypatch.setattr(llm, "_send", fake)
 
-    client = client_for(tmp_path)
-    first = client.call("llava", "ollama", "q", max_tokens=16)
-    second = client.call("llava", "ollama", "q", max_tokens=16)
-    third = client_for(tmp_path).call("llava", "ollama", "q", max_tokens=16)  # a new client reads the file
+    client = client_for(tmp_path, {"OPENROUTER_API_KEY": FAKE_KEY})
+    first = client.call("gpt-4o-mini", "openrouter", "q", max_tokens=16)
+    second = client.call("gpt-4o-mini", "openrouter", "q", max_tokens=16)
+    third = client_for(tmp_path, {"OPENROUTER_API_KEY": FAKE_KEY}).call(
+        "gpt-4o-mini", "openrouter", "q", max_tokens=16
+    )  # a new client reads the file
 
     assert len(fake.requests) == 1
     assert (first.cached, second.cached, third.cached) == (False, True, True)
@@ -221,42 +202,42 @@ def test_cache_miss_then_hit_makes_exactly_one_network_call(tmp_path: Path, monk
 
 def test_cache_line_has_the_spec_fields_and_key(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     image = write_png(tmp_path)
-    monkeypatch.setattr(llm, "_send", FakeSend(ok(OLLAMA_OK)))
-    client = client_for(tmp_path)
+    monkeypatch.setattr(llm, "_send", FakeSend(ok(OPENROUTER_OK)))
+    client = client_for(tmp_path, {"OPENROUTER_API_KEY": FAKE_KEY})
 
-    client.call("llava", "ollama", "describe", image_path=image, max_tokens=32)
+    client.call("gpt-4o-mini", "openrouter", "describe", image_path=image, max_tokens=32)
 
-    lines = client.cache_path("llava").read_text(encoding="utf-8").splitlines()
+    lines = client.cache_path("gpt-4o-mini").read_text(encoding="utf-8").splitlines()
     assert len(lines) == 1
     record = json.loads(lines[0])
     image_sha = hashlib.sha256(PNG).hexdigest()
-    assert record["key"] == hashlib.sha256(f"llava\ndescribe\n{image_sha}\n32".encode("utf-8")).hexdigest()
+    assert record["key"] == hashlib.sha256(f"gpt-4o-mini\ndescribe\n{image_sha}\n32".encode("utf-8")).hexdigest()
     assert set(record) == {"key", "model_id", "provider", "text", "created_at"}
-    assert (record["model_id"], record["provider"], record["text"]) == ("llava", "ollama", "a cat")
+    assert (record["model_id"], record["provider"], record["text"]) == ("gpt-4o-mini", "openrouter", "a cat")
     assert datetime.fromisoformat(record["created_at"]).utcoffset().total_seconds() == 0
 
 
 def test_cache_key_depends_on_prompt_and_max_tokens(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    fake = FakeSend(ok(OLLAMA_OK), ok(OLLAMA_OK), ok(OLLAMA_OK))
+    fake = FakeSend(ok(OPENROUTER_OK), ok(OPENROUTER_OK), ok(OPENROUTER_OK))
     monkeypatch.setattr(llm, "_send", fake)
 
-    client = client_for(tmp_path)
-    client.call("llava", "ollama", "q", max_tokens=16)
-    client.call("llava", "ollama", "q", max_tokens=32)  # different max_tokens: a new key
-    client.call("llava", "ollama", "r", max_tokens=32)  # different prompt: a new key
+    client = client_for(tmp_path, {"OPENROUTER_API_KEY": FAKE_KEY})
+    client.call("gpt-4o-mini", "openrouter", "q", max_tokens=16)
+    client.call("gpt-4o-mini", "openrouter", "q", max_tokens=32)  # different max_tokens: a new key
+    client.call("gpt-4o-mini", "openrouter", "r", max_tokens=32)  # different prompt: a new key
 
     assert len(fake.requests) == 3
 
 
 def test_changing_the_image_bytes_changes_the_key(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     image = write_png(tmp_path, data=b"first")
-    fake = FakeSend(ok(OLLAMA_OK), ok(OLLAMA_OK))
+    fake = FakeSend(ok(OPENROUTER_OK), ok(OPENROUTER_OK))
     monkeypatch.setattr(llm, "_send", fake)
 
-    client = client_for(tmp_path)
-    client.call("llava", "ollama", "read", image_path=image)
+    client = client_for(tmp_path, {"OPENROUTER_API_KEY": FAKE_KEY})
+    client.call("gpt-4o-mini", "openrouter", "read", image_path=image)
     image.write_bytes(b"second")
-    reply = client.call("llava", "ollama", "read", image_path=image)
+    reply = client.call("gpt-4o-mini", "openrouter", "read", image_path=image)
 
     assert reply.cached is False
     assert len(fake.requests) == 2
@@ -277,9 +258,9 @@ def test_corrupt_last_line_is_skipped_with_a_warning(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
 ) -> None:
     good = {
-        "key": llm.cache_key("llava", "kept prompt", "", 16),
-        "model_id": "llava",
-        "provider": "ollama",
+        "key": llm.cache_key("gpt-4o-mini", "kept prompt", "", 16),
+        "model_id": "gpt-4o-mini",
+        "provider": "openrouter",
         "text": "from cache",
         "created_at": "2026-11-19T00:00:00+00:00",
     }
@@ -290,7 +271,9 @@ def test_corrupt_last_line_is_skipped_with_a_warning(
     monkeypatch.setattr(llm, "_send", fake)
 
     with caplog.at_level(logging.WARNING, logger="taskfactory.llm"):
-        reply = client_for(tmp_path).call("llava", "ollama", "kept prompt", max_tokens=16)
+        reply = client_for(tmp_path, {"OPENROUTER_API_KEY": FAKE_KEY}).call(
+            "gpt-4o-mini", "openrouter", "kept prompt", max_tokens=16
+        )
 
     assert (reply.cached, reply.text) == (True, "from cache")
     assert fake.requests == []
@@ -301,11 +284,11 @@ def test_new_record_after_a_torn_tail_stays_readable(tmp_path: Path, monkeypatch
     path = cache_file(tmp_path)
     path.parent.mkdir(parents=True)
     path.write_text('{"key": "abc", "text": "half', encoding="utf-8")  # no newline: a crash mid-write
-    fake = FakeSend(ok(OLLAMA_OK))
+    fake = FakeSend(ok(OPENROUTER_OK))
     monkeypatch.setattr(llm, "_send", fake)
 
-    client_for(tmp_path).call("llava", "ollama", "new prompt")
-    reply = client_for(tmp_path).call("llava", "ollama", "new prompt")
+    client_for(tmp_path, {"OPENROUTER_API_KEY": FAKE_KEY}).call("gpt-4o-mini", "openrouter", "new prompt")
+    reply = client_for(tmp_path, {"OPENROUTER_API_KEY": FAKE_KEY}).call("gpt-4o-mini", "openrouter", "new prompt")
 
     assert len(fake.requests) == 1
     assert (reply.cached, reply.text) == (True, "a cat")
@@ -317,10 +300,10 @@ def test_new_record_after_a_torn_tail_stays_readable(tmp_path: Path, monkeypatch
 def test_two_429_responses_then_success_returns_the_reply(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, sleeps: list[float]
 ) -> None:
-    fake = FakeSend(http_reply(429), http_reply(429), ok(OLLAMA_OK))
+    fake = FakeSend(http_reply(429), http_reply(429), ok(OPENROUTER_OK))
     monkeypatch.setattr(llm, "_send", fake)
 
-    reply = client_for(tmp_path).call("llava", "ollama", "p")
+    reply = client_for(tmp_path, {"OPENROUTER_API_KEY": FAKE_KEY}).call("gpt-4o-mini", "openrouter", "p")
 
     assert (reply.text, reply.cached) == ("a cat", False)
     assert len(fake.requests) == 3
@@ -330,10 +313,10 @@ def test_two_429_responses_then_success_returns_the_reply(
 def test_retry_after_header_replaces_the_backoff(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, sleeps: list[float]
 ) -> None:
-    fake = FakeSend(http_reply(429, headers={"Retry-After": "7"}), ok(OLLAMA_OK))
+    fake = FakeSend(http_reply(429, headers={"Retry-After": "7"}), ok(OPENROUTER_OK))
     monkeypatch.setattr(llm, "_send", fake)
 
-    client_for(tmp_path).call("llava", "ollama", "p")
+    client_for(tmp_path, {"OPENROUTER_API_KEY": FAKE_KEY}).call("gpt-4o-mini", "openrouter", "p")
 
     assert sleeps == [7.0]
 
@@ -346,11 +329,11 @@ def test_429_on_every_attempt_raises_rate_limited(
     monkeypatch.setattr(llm, "_send", fake)
 
     with pytest.raises(RateLimited) as caught:
-        client_for(tmp_path).call("llava", "ollama", "p")
+        client_for(tmp_path, {"OPENROUTER_API_KEY": FAKE_KEY}).call("gpt-4o-mini", "openrouter", "p")
 
     assert len(fake.requests) == 5
     assert sleeps == [2.0, 4.0, 8.0, 16.0]
-    assert (caught.value.provider, caught.value.status) == ("ollama", 429)
+    assert (caught.value.provider, caught.value.status) == ("openrouter", 429)
 
 
 TRANSIENT_STATUSES = (500, 502, 503, 504)
@@ -360,10 +343,10 @@ TRANSIENT_STATUSES = (500, 502, 503, 504)
 def test_two_transient_server_errors_then_success_returns_the_reply(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, sleeps: list[float], status: int
 ) -> None:
-    fake = FakeSend(http_reply(status), http_reply(status), ok(OLLAMA_OK))
+    fake = FakeSend(http_reply(status), http_reply(status), ok(OPENROUTER_OK))
     monkeypatch.setattr(llm, "_send", fake)
 
-    reply = client_for(tmp_path).call("llava", "ollama", "p")
+    reply = client_for(tmp_path, {"OPENROUTER_API_KEY": FAKE_KEY}).call("gpt-4o-mini", "openrouter", "p")
 
     assert (reply.text, reply.cached) == ("a cat", False)
     assert len(fake.requests) == 3
@@ -379,11 +362,11 @@ def test_transient_server_error_on_every_attempt_raises_model_error_with_the_sta
     monkeypatch.setattr(llm, "_send", fake)
 
     with pytest.raises(ModelError) as caught:
-        client_for(tmp_path).call("llava", "ollama", "p")
+        client_for(tmp_path, {"OPENROUTER_API_KEY": FAKE_KEY}).call("gpt-4o-mini", "openrouter", "p")
 
     assert not isinstance(caught.value, RateLimited)
     assert f"HTTP {status}" in str(caught.value)
-    assert (caught.value.provider, caught.value.status) == ("ollama", status)
+    assert (caught.value.provider, caught.value.status) == ("openrouter", status)
     assert len(fake.requests) == 5
     assert sleeps == [2.0, 4.0, 8.0, 16.0]
 
@@ -391,10 +374,10 @@ def test_transient_server_error_on_every_attempt_raises_model_error_with_the_sta
 def test_retry_after_header_applies_to_a_503(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, sleeps: list[float]
 ) -> None:
-    fake = FakeSend(http_reply(503, headers={"Retry-After": "7"}), ok(OLLAMA_OK))
+    fake = FakeSend(http_reply(503, headers={"Retry-After": "7"}), ok(OPENROUTER_OK))
     monkeypatch.setattr(llm, "_send", fake)
 
-    client_for(tmp_path).call("llava", "ollama", "p")
+    client_for(tmp_path, {"OPENROUTER_API_KEY": FAKE_KEY}).call("gpt-4o-mini", "openrouter", "p")
 
     assert sleeps == [7.0]
 
@@ -407,7 +390,7 @@ def test_other_error_statuses_are_not_retried(
     monkeypatch.setattr(llm, "_send", fake)
 
     with pytest.raises(ModelError) as caught:
-        client_for(tmp_path).call("llava", "ollama", "p")
+        client_for(tmp_path, {"OPENROUTER_API_KEY": FAKE_KEY}).call("gpt-4o-mini", "openrouter", "p")
 
     assert not isinstance(caught.value, RateLimited)
     assert (caught.value.status, len(fake.requests), sleeps) == (status, 1, [])
@@ -422,7 +405,7 @@ def test_parse_retry_after(raw: str, expected: float | None) -> None:
 
 
 def test_default_min_intervals_match_the_plan() -> None:
-    assert llm.DEFAULT_MIN_INTERVAL_S == {"gemini": 1.0, "openrouter": 3.5, "ollama": 0.0}
+    assert llm.DEFAULT_MIN_INTERVAL_S == {"gemini": 1.0, "openrouter": 3.5}
 
 
 def test_gemini_calls_are_spaced_by_the_default_interval(
@@ -540,9 +523,9 @@ def test_network_failure_raises_model_error(tmp_path: Path, monkeypatch: pytest.
     monkeypatch.setattr(llm, "_send", FakeSend(urllib.error.URLError("connection refused")))
 
     with pytest.raises(ModelError, match="network") as caught:
-        client_for(tmp_path).call("llava", "ollama", "hi")
+        client_for(tmp_path, {"OPENROUTER_API_KEY": FAKE_KEY}).call("gpt-4o-mini", "openrouter", "hi")
 
-    assert caught.value.provider == "ollama"
+    assert caught.value.provider == "openrouter"
 
 
 def test_unknown_provider_is_refused(tmp_path: Path) -> None:
@@ -565,7 +548,7 @@ def test_send_calls_urlopen_with_a_120_second_timeout(monkeypatch: pytest.Monkey
     monkeypatch.setattr(llm, "_send", REAL_SEND)
     monkeypatch.setattr(urllib.request, "urlopen", fake_urlopen)
 
-    result = REAL_SEND(urllib.request.Request("http://localhost:11434/api/generate", data=b"{}", method="POST"))
+    result = REAL_SEND(urllib.request.Request("https://openrouter.ai/api/v1/chat/completions", data=b"{}", method="POST"))
 
     assert seen["timeout"] == 120
     assert (result.status, result.body) == (200, b"{}")
@@ -580,7 +563,7 @@ def test_send_turns_an_http_error_into_a_status_and_body(monkeypatch: pytest.Mon
     monkeypatch.setattr(llm, "_send", REAL_SEND)
     monkeypatch.setattr(urllib.request, "urlopen", fake_urlopen)
 
-    result = REAL_SEND(urllib.request.Request("http://localhost:11434/api/generate", data=b"{}", method="POST"))
+    result = REAL_SEND(urllib.request.Request("https://openrouter.ai/api/v1/chat/completions", data=b"{}", method="POST"))
 
     assert (result.status, result.body) == (429, b"slow down")
     assert llm._header(result.headers, "retry-after") == "3"

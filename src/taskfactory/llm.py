@@ -1,4 +1,4 @@
-"""Model client for the eval step: Gemini, OpenRouter and Ollama behind one call().
+"""Model client for the eval step: Gemini and OpenRouter behind one call().
 
 Standard library only. API keys come from environment variables and never reach a file,
 a log line or an exception message. Every answer is appended to
@@ -35,7 +35,6 @@ __all__ = [
     "Reply",
     "cache_key",
     "call_gemini",
-    "call_ollama",
     "call_openrouter",
     "image_sha256",
     "safe_model_id",
@@ -49,11 +48,10 @@ RETRYABLE_STATUSES = frozenset({429, 500, 502, 503, 504})  # 429 is rate limitin
 BACKOFF_BASE_S = 2.0  # waits 2, 4, 8, 16 s between attempts unless Retry-After says otherwise
 MAX_RETRY_WAIT_S = 120.0  # upper bound on any single wait, Retry-After included
 
-DEFAULT_MIN_INTERVAL_S: dict[str, float] = {"gemini": 1.0, "openrouter": 3.5, "ollama": 0.0}
+DEFAULT_MIN_INTERVAL_S: dict[str, float] = {"gemini": 1.0, "openrouter": 3.5}
 
 GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
-OLLAMA_URL = "http://localhost:11434/api/generate"
 
 _LAST_REQUEST: dict[str, float] = {}  # provider -> time.monotonic() of its latest request
 _SAFE_CHARS = frozenset("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789._-")
@@ -352,44 +350,9 @@ def call_openrouter(
     return Reply(message, response.status, False, model_id, provider)
 
 
-def call_ollama(
-    model_id: str,
-    prompt: str,
-    image_path: str | Path | None = None,
-    max_tokens: int = 1024,
-    *,
-    env: Mapping[str, str] | None = None,
-    min_interval: float | None = None,
-) -> Reply:
-    """Local Ollama REST generate. No key; env is accepted only for a uniform signature."""
-    provider = "ollama"
-    payload: dict[str, Any] = {
-        "model": model_id,
-        "prompt": prompt,
-        "stream": False,
-        "options": {"temperature": 0, "num_predict": max_tokens},
-    }
-    if image_path is not None:
-        payload["images"] = [_image_b64(image_path)]
-    response = _post(
-        provider,
-        OLLAMA_URL,
-        {"Content-Type": "application/json"},
-        payload,
-        _interval(provider, min_interval),
-        (),
-    )
-    data = _json_ok(response, provider, ())
-    text = data.get("response") if isinstance(data, dict) else None
-    if not isinstance(text, str) or not text.strip():
-        raise ModelError("ollama reply was empty", provider=provider, status=response.status)
-    return Reply(text, response.status, False, model_id, provider)
-
-
 PROVIDERS: dict[str, Callable[..., Reply]] = {
     "gemini": call_gemini,
     "openrouter": call_openrouter,
-    "ollama": call_ollama,
 }
 
 
@@ -461,7 +424,7 @@ def _append_record(path: Path, record: dict[str, Any]) -> None:
 
 
 class ModelClient:
-    """Cached, throttled access to the three providers.
+    """Cached, throttled access to the two providers.
 
     Answers are stored under out_dir/eval/<model>/responses.jsonl. Keys are read from env
     (default os.environ) and only when a network call is actually needed, so a cached

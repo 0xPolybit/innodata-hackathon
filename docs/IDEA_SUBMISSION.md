@@ -88,7 +88,6 @@ configs/*.toml ──► taskfactory (Python, `tf` CLI)
                     │    OpenCV pixel reader, counterfactual re-render
                     ├─ llm.py ──► Gemini free tier (Google AI Studio)
                     │            OpenRouter :free models
-                    │            Ollama, local (Gemma 3 4B, secondary check only)
                     └─ storage: out/<run>/tasks/... + JSONL + manifest.json
                                     │
                                     ▼
@@ -96,7 +95,7 @@ configs/*.toml ──► taskfactory (Python, `tf` CLI)
 ```
 
 ## Technologies to be used
-Python 3.12 or newer; matplotlib, Pillow, numpy, OpenCV, pytest; Tesseract OCR; Google AI Studio free tier (Gemini API, no billing); OpenRouter `:free` models (no credit purchase); Ollama with Gemma 3 4B (local); plain files and JSONL storage; static HTML on GitHub Pages; Mermaid or draw.io for diagrams; OBS Studio for the video; Google Slides for the deck.
+Python 3.12 or newer; matplotlib, Pillow, numpy, OpenCV, pytest; Tesseract OCR; Google AI Studio free tier (Gemini API, no billing); OpenRouter `:free` models (no credit purchase); plain files and JSONL storage; static HTML on GitHub Pages; Mermaid or draw.io for diagrams; OBS Studio for the video; Google Slides for the deck.
 
 ## Estimated implementation cost
 Service cost: 0. No billing information is needed and no paid tier is used. Hardware: our own laptops. Effort: about 8 to 10 working days for two people (plan, section 3). Free-tier limits set the evaluation size: about 200 items per model.

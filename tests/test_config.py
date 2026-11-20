@@ -40,6 +40,27 @@ families = ["bar"]
 """
 
 
+VALID_MODELS = """\
+[[models]]
+id = "model-a"
+provider = "gemini"
+role = "evaluated"
+inputs = ["text", "image"]
+test_call = "not run"
+limits = "test only"
+notes = "test only"
+
+[[models]]
+id = "local-check"
+provider = "gemini"
+role = "secondary"
+inputs = ["text", "image"]
+test_call = "not run"
+limits = "test only"
+notes = "test only"
+"""
+
+
 def _write(tmp_path: Path, name: str, text: str) -> Path:
     """Write ``text`` to a temporary config file and return its path."""
     path = tmp_path / name
@@ -141,8 +162,8 @@ def test_blocklist_is_case_insensitive_and_whole_word() -> None:
     check_blocklist("Minority report", ["minor"])
 
 
-def test_check_no_secondary_in_eval_refuses_secondary_id() -> None:
-    models = load_models(CONFIGS / "models.toml")
+def test_check_no_secondary_in_eval_refuses_secondary_id(tmp_path: Path) -> None:
+    models = load_models(_write(tmp_path, "models.toml", VALID_MODELS))
     secondary_ids = [
         model["id"] for model in models if model["role"] == "secondary"
     ]
@@ -150,23 +171,31 @@ def test_check_no_secondary_in_eval_refuses_secondary_id() -> None:
         model["id"] for model in models if model["role"] == "evaluated"
     ]
 
-    assert secondary_ids == ["gemma3:4b"]
+    assert secondary_ids == ["local-check"]
 
-    with pytest.raises(ConfigError, match="gemma3:4b"):
+    with pytest.raises(ConfigError, match="local-check"):
         check_no_secondary_in_eval(models, [*evaluated_ids, secondary_ids[0]])
 
     check_no_secondary_in_eval(models, evaluated_ids)
     check_no_secondary_in_eval(models, None)
 
 
-def test_load_models_with_eval_ids_refuses_secondary_id() -> None:
-    models = load_models(CONFIGS / "models.toml")
+def test_load_models_with_eval_ids_refuses_secondary_id(tmp_path: Path) -> None:
+    path = _write(tmp_path, "models.toml", VALID_MODELS)
     secondary_id = next(
-        model["id"] for model in models if model["role"] == "secondary"
+        model["id"] for model in load_models(path) if model["role"] == "secondary"
     )
 
     with pytest.raises(ConfigError, match="secondary"):
-        load_models(CONFIGS / "models.toml", eval_ids=[secondary_id])
+        load_models(path, eval_ids=[secondary_id])
+
+
+def test_real_roster_has_no_secondary_entries() -> None:
+    models = load_models(CONFIGS / "models.toml")
+
+    assert [model["id"] for model in models if model["role"] == "secondary"] == []
+    assert {model["role"] for model in models} == {"evaluated"}
+    assert {model["provider"] for model in models} == {"gemini", "openrouter"}
 
 
 def test_unknown_top_level_key_is_rejected(tmp_path: Path) -> None:

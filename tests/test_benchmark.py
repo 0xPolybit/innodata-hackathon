@@ -66,7 +66,7 @@ notes = "test only"
 
 [[models]]
 id = "local-check"
-provider = "ollama"
+provider = "gemini"
 role = "secondary"
 inputs = ["text", "image"]
 test_call = "not run"
@@ -166,7 +166,7 @@ def read_results(path: Path) -> list[dict[str, Any]]:
 
 
 def client_for(cache_root: Path) -> llm.ModelClient:
-    return llm.ModelClient(cache_root, env={}, min_intervals={"gemini": 0.0, "openrouter": 0.0, "ollama": 0.0})
+    return llm.ModelClient(cache_root, env={}, min_intervals={"gemini": 0.0, "openrouter": 0.0})
 
 
 class FakeProvider:
@@ -212,7 +212,7 @@ class FakeProvider:
 
 
 def install(monkeypatch: pytest.MonkeyPatch, provider: Callable[..., Reply]) -> None:
-    for name in ("gemini", "openrouter", "ollama"):
+    for name in ("gemini", "openrouter"):
         monkeypatch.setitem(llm.PROVIDERS, name, provider)
 
 

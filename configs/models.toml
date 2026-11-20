@@ -27,12 +27,3 @@ inputs = ["text", "image", "video"]
 test_call = "pass (19 Nov)"
 limits = "20 requests per minute and 50 per day in total without purchase. Do not buy credits."
 notes = "Reasoning model: hidden reasoning uses output tokens, so set max_tokens of at least 1024 or the answer comes back empty. Cost reported as 0."
-
-[[models]]
-id = "gemma3:4b"
-provider = "ollama"
-role = "secondary"
-inputs = ["text", "image"]
-test_call = "pass (19 Nov)"
-limits = "local, no quota. About 7 to 10 s per short text answer on this CPU (19 Nov)."
-notes = "Secondary check only. Never decides validity and is never in the evaluated set."

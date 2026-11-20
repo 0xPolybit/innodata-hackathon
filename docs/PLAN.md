@@ -79,8 +79,6 @@ Track 1 fallback note (Harbor with a free model, UNVERIFIED until tested). Harbo
 GEMINI_API_KEY=...   harbor run --agent <agent> --model gemini/<free-tier-model-id> ...
 # OpenRouter free variant (no credit purchase)
 OPENROUTER_API_KEY=... harbor run --agent <agent> --model openrouter/<model-id>:free ...
-# Local Ollama
-harbor run --agent <agent> --model ollama/gemma3:4b ...
 ```
 Flag names and model-string format must be checked against Harbor's docs on the day. Run locally with Docker only. No Daytona, Modal or other cloud sandbox.
 
@@ -97,7 +95,7 @@ Python 3.12 or newer (the machine has 3.14; pin a version that all wheels suppor
 | OCR read-back | Tesseract OCR via a thin subprocess wrapper | Record Tesseract version in every manifest. |
 | Pixel reader, near-dup hash | OpenCV + numpy | pHash written in about 20 lines with OpenCV DCT. |
 | Tests | pytest | Includes the validator self-test. |
-| Model calls | stdlib HTTP in one module `llm.py`, 3 providers | Gemini REST, OpenRouter (OpenAI-compatible REST), Ollama local REST. |
+| Model calls | stdlib HTTP in one module `llm.py`, 2 providers | Gemini REST, OpenRouter (OpenAI-compatible REST). |
 | Storage | Plain files + JSONL | No database. |
 | Report | stdlib `string.Template` to static HTML, charts as PNG | Hosted on GitHub Pages from a `gh-pages` branch. |
 | Pinning | `pyproject.toml` + lockfile | Reproducible install. |
@@ -111,7 +109,6 @@ Model roles, kept in `configs/models.toml` with exact IDs and the date each was 
 | Evaluated | best free-tier Gemini Flash-class model on build day (candidates: 3 Flash Preview, 3.1 Flash-Lite, 3.5 Flash-Lite) | Google AI Studio free tier | Not 2.5 Pro or 2.5 Flash (routed elsewhere from 1 Dec 2026). |
 | Evaluated | a second Gemini free-tier model from the same list | Google AI Studio free tier | Gives a size or version contrast. |
 | Evaluated | NVIDIA Nemotron 3.5 Super VL, ID ending `:free` | OpenRouter | Alternates: Ling 3.2 Flash, Nemotron 3 Nano Omni (`:free`). Not Span-01 Lite. |
-| Secondary validator only | Gemma 3 4B (`gemma3:4b`) | Ollama, local CPU | Excluded from the evaluated set. Its checks are labelled secondary and never decide validity. |
 
 Data note: free-tier Gemini prompts may be used to improve Google products. That is acceptable because every image and question is synthetic. We send nothing else.
 
@@ -124,7 +121,6 @@ Data note: free-tier Gemini prompts may be used to improve Google products. That
  [2 render]    family renderer -> image.png + text_boxes.json
  [3 ask]       question template + answer from spec -> task.json   (ground truth)
  [4 validate]  deterministic checks 1-7 (local, no model)
-               secondary: S1 local Gemma text-only check (labelled, non-blocking)
  [5 score]     variation metrics + near-duplicate filter (batch)
  [6 package]   manifest.json + tasks.jsonl index
  [7 evaluate]  ~200 stratified valid tasks per evaluated model, resumable, cached
@@ -199,14 +195,14 @@ Adding a domain is one TOML file. Adding a family is one renderer module with `r
 - Per-task seed is a hash of (run seed, family, domain, index). Adding a family does not shift other tasks.
 - PNG bytes are deterministic on one machine. (UNCERTAIN across OSes: if bytes differ, `tf diff` falls back to spec hash + pixel threshold and says so.)
 - All model responses go to append-only JSONL keyed by (model ID, prompt hash, image hash), with temperature 0. `tf eval` resumes where it stopped. `tf run --offline` replays from the files, so judges need no account or key.
-- Ollama model digest and Tesseract version are recorded in manifests.
+- Tesseract version is recorded in manifests.
 - `tf diff` prints changed, added and removed files. Demo target: 0 changed.
 
 ### 4.6 Validation (independent of evaluated models)
 
 Reference answers come only from generator ground truth. No evaluated model ever validates a task, and benchmark results never change a task's label.
 
-Why each task needs the image: the values and positions are random synthetic data that exists only in the image, so the answer cannot come from the question text or from prior knowledge. The answer-position test shows that guessing is at chance. S1 measures text-only success on the pool.
+Why each task needs the image: the values and positions are random synthetic data that exists only in the image, so the answer cannot come from the question text or from prior knowledge. The answer-position test shows that guessing is at chance.
 
 | # | Check | Pass rule |
 |---|---|---|
@@ -217,7 +213,6 @@ Why each task needs the image: the values and positions are random synthetic dat
 | 5 | Pixel reader | OpenCV finds bars, line points or room rectangles by colour and contour, pairs them with OCR labels, recomputes the answer from pixels; must equal ground truth |
 | 6 | Counterfactual re-render | data altered so the true answer must change; re-render; pixel reader must return the new answer |
 | 7 | Re-render determinism | rendering the same spec twice gives the same hash |
-| S1 | Secondary: text-only necessity | local Gemma 3 4B sees the question without the image; logged, non-blocking |
 
 Batch-level evidence:
 - Funnel: generated, pass count after each check, final valid yield.
@@ -272,7 +267,7 @@ Tags: R = repeatable, V = validity, Var = variation, O = originality, C = commun
 | CLI: generate, validate, score, eval, report, run, diff | R |
 | Stable seeds, lockfile, JSONL cache, `--offline`, resumable eval | R |
 | Families bar, line, floorplan; 3 domains; 6 question types | Var |
-| Checks 1 to 7 on all tasks; S1 on all if CPU time allows, else a sample | V, O |
+| Checks 1 to 7 on all tasks | V, O |
 | Pixel readers for all 3 families | V, O |
 | Near-dup filter and variation metrics | Var |
 | Validator self-test, 50-task human audit | V |
@@ -316,10 +311,9 @@ Rules:
 |---|---|---|---|---|
 | SU1 | Create a Google AI Studio API key with no billing linked | none | You | A test request to one free Gemini model returns text |
 | SU2 | Create an OpenRouter account, no credit purchase | none | You | A test request to a `:free` vision model returns text |
-| SU3 | Install Tesseract OCR and Ollama; pull `gemma3:4b` | none | You | `tesseract --version` and `ollama run gemma3:4b` both work |
+| SU3 | Install Tesseract OCR | none | You | `tesseract --version` works |
 | SU4 | Settle the Python version: 3.12 (recommended) or accept 3.14 | none | You | Version written into `pyproject.toml` |
 | SU5 | Record exact model IDs, limits and check date in `configs/models.toml` | SU1, SU2 | Builder | Each model has its ID and limits, or "unknown" with a reason |
-| SU6 | Time one Gemma 3 4B call on this CPU | SU3 | Builder | Latency recorded; decides whether the local check runs on all items or a sample |
 
 ### Core build
 
@@ -328,7 +322,7 @@ Rules:
 | CB1 | Repo skeleton: `pyproject.toml`, `taskfactory/` package, `tf` command stub, tests folder, `.gitignore` | SU4 | Builder | `tf --help` runs; `pytest` passes an empty test |
 | CB2 | Lockfile and a clean-install check | CB1 | Builder | A fresh virtual environment installs from the lockfile and runs `tf --help` |
 | CB3 | Config loader for run, domain and family files, with the blocklist check | CB1 | Builder | A bad config is refused with a reason (test) |
-| CB4 | `llm.py` model client: three providers, JSONL cache, resume, throttling | CB1 (live calls also need SU1–SU3) | Builder | Offline test replays a stored response; a live test call works for each provider |
+| CB4 | `llm.py` model client: two providers, JSONL cache, resume, throttling | CB1 (live calls also need SU1–SU2) | Builder | Offline test replays a stored response; a live test call works for each provider |
 
 ### Factory
 
@@ -423,7 +417,7 @@ Rules:
 - [ ] Track 2 selected in the portal. All members listed on the dashboard before team formation closes (about 6 Dec, UNCERTAIN).
 - [ ] Source, docs, working prototype and demo all submitted.
 
-Technology list for the brief: Python, matplotlib, Pillow, numpy, OpenCV, pytest, Tesseract OCR; Google AI Studio free tier (Gemini API, no billing); OpenRouter `:free` models (no credit purchase); Ollama with Gemma 3 4B (local); plain files + JSONL; static HTML on GitHub Pages; Mermaid or draw.io for diagrams; OBS Studio; Google Slides. Free tiers and open source only. Estimated service cost: 0.
+Technology list for the brief: Python, matplotlib, Pillow, numpy, OpenCV, pytest, Tesseract OCR; Google AI Studio free tier (Gemini API, no billing); OpenRouter `:free` models (no credit purchase); plain files + JSONL; static HTML on GitHub Pages; Mermaid or draw.io for diagrams; OBS Studio; Google Slides. Free tiers and open source only. Estimated service cost: 0.
 
 ## 8. Demo-day script (about 4 minutes)
 
@@ -450,7 +444,6 @@ Fallback: pre-recorded OBS capture of the same sequence, plus the GitHub Pages r
 | 3 | Gemini free limits are too low, or a preview model is withdrawn. | Read limits in task SU5; resumable eval; record IDs and dates; swap to another listed free model. |
 | 4 | OpenRouter 50 a day total is too slow. | One model, about 4 days at the cap; second model is stretch. |
 | 5 | Pixel reader is brittle and rejects good tasks. | Controlled palette and layout; report reader coverage; self-test both ways. |
-| 6 | Gemma 3 4B too slow on CPU. | S1 is secondary; run it on a sample. |
 | 7 | Tesseract misreads small or rotated text. | Min font rule; fixed rendering font; tune page segmentation mode. |
 | 8 | Team forms late or a member drops out. | Form team now; cuts by team size in section 5. |
 
@@ -469,7 +462,7 @@ Decisions the user must make:
 - Confirm Track 2 (assumed done today; say if not). Decide the fallback if the organisers refuse code-drawn images (gate G1).
 - Team size, and who owns roles A, B, C.
 - Who creates the free AI Studio and OpenRouter accounts (no billing, no purchase), and accept that free-tier Gemini prompts may be used by Google (synthetic data only).
-- Which machine runs Ollama, and the Python version to pin.
+- The Python version to pin.
 
 ### Defaults chosen (organiser answers not received; we build on these and change them only if the organisers say otherwise)
 
@@ -491,7 +484,6 @@ Decisions the user must make:
 |---|---|---|---|---|
 | Gemini API | Google AI Studio free tier | No | Checked 19 Nov: AI Studio billing page | Per-model limits unverified; prompts may be used by Google; previews can change |
 | OpenRouter | `:free` model variants | No | Checked 19 Nov: free collection page and limits | 50 a day total; IDs and vision support to confirm on the day |
-| Local model | Ollama + Gemma 3 4B | No | Checked 19 Nov: Ollama repo MIT; Gemma 3 vision at 4B, 12B, 27B | CPU speed untested; Gemma licence terms not reviewed here |
 | Track 1 harness | Harbor, local Docker | No | Checked 19 Nov: Apache-2.0 | Free-model config UNVERIFIED |
 | Containers | Docker Engine in WSL2 | No | Known: free and open source | Docker Desktop terms not checked; we do not rely on Desktop |
 | Hosting | GitHub Pages (public repo) | No | Known | None known |
@@ -511,7 +503,6 @@ Decisions the user must make:
 | Groq | Free-plan terms not confirmed; do not rely on it. |
 | Any paid API key or credit purchase (incl. OpenRouter $10 for 1,000 a day) | Binding free-stack rule. |
 | Google Cloud Free Trial or linked billing | Requires billing information. |
-| Ollama Cloud | Cost not stated. |
 | Cloud sandboxes (Daytona, Modal and others) | Pricing not stated. |
 | OpenRouter Span-01 Lite | May need a funded account. |
 | Gemini 2.5 Pro and 2.5 Flash | Route to other models from 1 Dec 2026. |
@@ -538,6 +529,5 @@ Event facts are from the source brief (session auto-captions and video descripti
 | OpenRouter free caps 20 a minute, 50 a day without purchase | Checked 19 Nov |
 | Exact OpenRouter `:free` IDs for the three vision models | UNVERIFIED; confirm in task SU5 |
 | Harbor running with a free model | UNVERIFIED |
-| Gemma 3 4B latency on our CPU | UNVERIFIED |
 | Byte-identical PNGs across OSes | UNCERTAIN |
 | The Devpost "InnoData Hackathon" (Feb 2026) is a different event | Per brief; confirm on dashboard |
