@@ -7,9 +7,12 @@ committed files under ``site/``.
 from __future__ import annotations
 
 import json
+import re
 from typing import Any
 
 from taskfactory.web.app import application
+
+HREF_PATTERN = re.compile(r'href="([^"]*)"')
 
 
 def call(method: str, path: str) -> tuple[int, dict[str, str], bytes]:
@@ -84,11 +87,23 @@ def test_about_serves_the_landing_page() -> None:
     assert status == 200
     assert headers["Content-Type"].startswith("text/html")
     assert "<title>TaskFactory" in page
-    assert 'href="sample/index.html"' in page
+    assert 'href="/sample/"' in page
+
+
+def test_about_uses_routes_for_its_links() -> None:
+    status, _, body = call("GET", "/about")
+    page = body.decode("utf-8")
+    hrefs = HREF_PATTERN.findall(page)
+
+    assert status == 200
+    assert not [href for href in hrefs if href.endswith(".html")]
+    for route in ("/", "/about", "/sample/"):
+        assert f'href="{route}"' in page
+    assert 'href="/about" aria-current="page"' in page
 
 
 def test_about_sample_link_target_is_served() -> None:
-    """At /about the relative link resolves to /sample/index.html."""
+    """The sample report is also served by its direct file path."""
     status, headers, body = call("GET", "/sample/index.html")
 
     assert status == 200

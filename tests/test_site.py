@@ -19,6 +19,7 @@ VERCEL = REPO_ROOT / "vercel.json"
 
 REF_PATTERN = re.compile(r"""(?:href|src)\s*=\s*["']([^"']*)["']""")
 EXTERNAL_SCHEMES = {"http", "https", "mailto", "tel", "data", "javascript"}
+ROUTE_LINKS = {"/", "/about", "/sample/"}
 
 
 def _relative_refs(html: str) -> list[str]:
@@ -38,16 +39,26 @@ def test_landing_page_has_title_and_sample_link() -> None:
     assert LANDING.is_file(), "site/index.html is missing"
     html = LANDING.read_text(encoding="utf-8")
     assert "TaskFactory" in html
-    assert any(ref == "sample/index.html" for ref in _relative_refs(html))
+    assert any(ref == "/sample/" for ref in _relative_refs(html))
 
 
 def test_sample_report_exists() -> None:
     assert SAMPLE.is_file(), "site/sample/index.html is missing"
 
 
-def test_landing_page_relative_links_resolve() -> None:
+def test_landing_page_links_use_routes_and_existing_files() -> None:
     html = LANDING.read_text(encoding="utf-8")
-    missing = sorted({ref for ref in _relative_refs(html) if not (SITE / ref).is_file()})
+    refs = _relative_refs(html)
+    route_links = {ref for ref in refs if ref.startswith("/")}
+    file_links = {ref for ref in refs if not ref.startswith("/")}
+
+    assert route_links == ROUTE_LINKS, (
+        f"site/index.html must use only these routes: {sorted(ROUTE_LINKS)}; "
+        f"found: {sorted(route_links)}"
+    )
+    html_links = sorted(ref for ref in refs if ref.endswith(".html"))
+    assert not html_links, f"site/index.html must link to routes, not .html files: {html_links}"
+    missing = sorted(ref for ref in file_links if not (SITE / ref).is_file())
     assert not missing, f"site/index.html points at missing files: {missing}"
 
 
