@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+import io
 import json
 import re
 import socket
 from typing import Any
+from urllib.parse import parse_qs, urlencode, urlsplit
 
 import pytest
 
@@ -13,7 +15,9 @@ import taskfactory.cli as cli
 from taskfactory import __version__
 from taskfactory.web import forms
 from taskfactory.web.app import application
+from taskfactory.web.generate import GenerationResult
 from taskfactory.web.render_page import COLD_START_MESSAGE
+from taskfactory.web.results_page import render_results_page
 
 INPUT_NAMES = (
     "seed",
@@ -26,7 +30,9 @@ INPUT_NAMES = (
 )
 
 
-def call(method: str, path: str) -> tuple[int, dict[str, str], bytes]:
+def call(
+    method: str, path: str, body: bytes = b""
+) -> tuple[int, dict[str, str], bytes]:
     """Call the WSGI app directly and return the status, headers and body."""
     captured: dict[str, Any] = {}
 
@@ -34,9 +40,52 @@ def call(method: str, path: str) -> tuple[int, dict[str, str], bytes]:
         captured["status"] = status
         captured["headers"] = headers
 
-    environ = {"REQUEST_METHOD": method, "PATH_INFO": path}
-    body = b"".join(application(environ, start_response))
-    return int(captured["status"].split()[0]), dict(captured["headers"]), body
+    parts = urlsplit(path)
+    environ: dict[str, Any] = {
+        "REQUEST_METHOD": method,
+        "PATH_INFO": parts.path,
+        "QUERY_STRING": parts.query,
+    }
+    if body:
+        environ["wsgi.input"] = io.BytesIO(body)
+        environ["CONTENT_LENGTH"] = str(len(body))
+        environ["CONTENT_TYPE"] = "application/x-www-form-urlencoded"
+    response = b"".join(application(environ, start_response))
+    return int(captured["status"].split()[0]), dict(captured["headers"]), response
+
+
+def _fast_payload() -> dict[str, Any]:
+    """A one-chart, bar-only form with a retail topic."""
+    payload = forms.default_form_payload()
+    payload.update(
+        {
+            "seed": "7",
+            "charts_per_type": "1",
+            "chart_types": ["bar"],
+            "topic": "retail",
+            "question_types": ["value_lookup"],
+            "difficulty": "standard",
+            "question_in_image": "on",
+        }
+    )
+    return payload
+
+
+def _quiet_result(seed: int) -> GenerationResult:
+    """A run with no tasks, enough to render the results page."""
+    return GenerationResult(
+        run_id="ui-test0001",
+        commit="c" * 40,
+        seed=seed,
+        attempted=0,
+        accepted=0,
+        rejected=0,
+        yield_=0.0,
+        elapsed_seconds=0.1,
+        accepted_tasks=(),
+        rejected_tasks=(),
+        artifacts={},
+    )
 
 
 def test_index_page() -> None:
@@ -92,6 +141,86 @@ def test_index_shows_the_cold_start_note() -> None:
     assert status == 200
     assert COLD_START_MESSAGE in page
     assert "Starting the demo." in page
+
+
+def test_index_prefills_the_form_from_the_query_string() -> None:
+    status, _, body = call(
+        "GET",
+        "/?seed=7&charts_per_type=2&chart_types=bar&topic=retail&difficulty=harder",
+    )
+    page = body.decode("utf-8")
+
+    assert status == 200
+    assert re.search(r'<input[^>]*name="seed"[^>]*value="7"', page)
+    assert re.search(r'<input[^>]*name="charts_per_type"[^>]*value="2"', page)
+    assert 'name="chart_types" value="bar" checked' in page
+    assert 'name="chart_types" value="line" checked' not in page
+    assert 'name="topic" value="retail" checked' in page
+    assert 'name="difficulty" value="harder" checked' in page
+
+
+def test_index_falls_back_from_an_invalid_seed() -> None:
+    status, _, body = call("GET", "/?seed=abc")
+    page = body.decode("utf-8")
+
+    assert status == 200
+    assert 'value="20261206"' in page
+    assert forms.SEED_MESSAGE not in page
+    assert "Check the form" not in page
+
+
+def test_index_falls_back_from_an_unknown_topic() -> None:
+    status, _, body = call("GET", "/?topic=mars")
+    page = body.decode("utf-8")
+
+    assert status == 200
+    assert 'name="topic" value="tourism" checked' in page
+    assert 'name="topic" value="mars"' not in page
+
+
+def test_index_prefills_question_types_and_the_image_toggle() -> None:
+    status, _, body = call(
+        "GET", "/?chart_types=bar&question_types=value_lookup&question_in_image=off"
+    )
+    page = body.decode("utf-8")
+
+    assert status == 200
+    assert 'name="question_types" value="value_lookup" checked' in page
+    assert 'name="question_types" value="extremum" checked' not in page
+    assert 'name="question_in_image" value="on" checked' not in page
+
+
+def test_results_back_link_carries_the_submitted_settings() -> None:
+    form = forms.parse_form(_fast_payload())
+    page = render_results_page(_quiet_result(form.seed), form)
+
+    match = re.search(r'<a class="btn btn-outline" href="([^"]*)">', page)
+    assert match is not None
+    parts = urlsplit(match.group(1))
+
+    assert parts.path == "/"
+    assert forms.parse_form(parse_qs(parts.query, keep_blank_values=True)) == form
+
+
+def test_bad_form_back_link_is_plain_root() -> None:
+    request = urlencode({**_fast_payload(), "seed": "abc"}, doseq=True).encode("utf-8")
+    status, _, body = call("POST", "/api/generate", request)
+    page = body.decode("utf-8")
+
+    assert status == 400
+    match = re.search(r'<a class="btn btn-outline" href="([^"]*)">', page)
+    assert match is not None
+    assert match.group(1) == "/"
+
+
+def test_results_page_explains_that_the_zip_reruns_the_settings() -> None:
+    form = forms.parse_form(_fast_payload())
+    page = render_results_page(_quiet_result(form.seed), form)
+
+    assert (
+        "This re-runs the same settings to build the ZIP, so it takes about as "
+        "long as the first run."
+    ) in page
 
 
 def test_health() -> None:

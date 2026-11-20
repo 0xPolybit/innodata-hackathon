@@ -15,7 +15,7 @@ from typing import Any
 from urllib.parse import parse_qs, unquote
 
 from taskfactory import __version__
-from taskfactory.web.forms import FormError, ParsedForm, parse_form
+from taskfactory.web.forms import FormError, ParsedForm, parse_form, parse_query
 from taskfactory.web.generate import (
     FAILED_MESSAGE,
     QUOTA_MESSAGE,
@@ -101,17 +101,22 @@ def _html_response(status: str, html: str, headers: Headers | None = None) -> Re
     return status, response_headers, body
 
 
-def _index() -> Response:
-    """GET /: the form page."""
-    return _html_response("200 OK", render_page())
+def _index(environ: dict[str, Any]) -> Response:
+    """GET /: the form page, pre-filled from the query string when one is sent."""
+    query = parse_qs(
+        str(environ.get("QUERY_STRING") or ""), keep_blank_values=True
+    )
+    if not query:
+        return _html_response("200 OK", render_page())
+    return _html_response("200 OK", render_page(parse_query(query)))
 
 
-def _health() -> Response:
+def _health(environ: dict[str, Any] | None = None) -> Response:
     """GET /api/health: a plain liveness check."""
     return _json_response("200 OK", {"status": "ok", "python": platform.python_version()})
 
 
-def _version() -> Response:
+def _version(environ: dict[str, Any] | None = None) -> Response:
     """GET /api/version: the package version and the current commit."""
     return _json_response("200 OK", {"version": __version__, "commit": _commit_sha()})
 
@@ -238,7 +243,7 @@ def _zip_response(environ: dict[str, Any]) -> Response:
         log_failure(exc, result.run_id)
         return _html_response(
             "500 Internal Server Error",
-            render_message("Generation failed", FAILED_MESSAGE),
+            render_message("Generation failed", FAILED_MESSAGE, form),
         )
 
     filename = _zip_filename(result.run_id)
@@ -294,7 +299,7 @@ def _run_form(environ: dict[str, Any]) -> tuple[ParsedForm, GenerationResult]:
         raise _Respond(
             _html_response(
                 "503 Service Unavailable",
-                render_message("Generator busy", str(exc)),
+                render_message("Generator busy", str(exc), form),
                 [("Retry-After", "60")],
             )
         ) from exc
@@ -304,14 +309,14 @@ def _run_form(environ: dict[str, Any]) -> tuple[ParsedForm, GenerationResult]:
         raise _Respond(
             _html_response(
                 "503 Service Unavailable",
-                render_message("Compute limit reached", QUOTA_MESSAGE),
+                render_message("Compute limit reached", QUOTA_MESSAGE, form),
             )
         ) from None
     except GenerationFailed as exc:
         raise _Respond(
             _html_response(
                 "500 Internal Server Error",
-                render_message("Generation failed", str(exc)),
+                render_message("Generation failed", str(exc), form),
             )
         ) from exc
     except Exception as exc:  # the last line of defence: never show a traceback
@@ -319,7 +324,7 @@ def _run_form(environ: dict[str, Any]) -> tuple[ParsedForm, GenerationResult]:
         raise _Respond(
             _html_response(
                 "500 Internal Server Error",
-                render_message("Generation failed", FAILED_MESSAGE),
+                render_message("Generation failed", FAILED_MESSAGE, form),
             )
         ) from None
     return form, result
@@ -373,7 +378,7 @@ def _read_form_body(environ: dict[str, Any]) -> bytes:
     return data
 
 
-_GET_ROUTES: dict[str, Callable[[], Response]] = {
+_GET_ROUTES: dict[str, Callable[[dict[str, Any]], Response]] = {
     "/": _index,
     "/api/health": _health,
     "/api/version": _version,
@@ -388,6 +393,11 @@ def application(environ: dict[str, Any], start_response: Callable[..., Any]) -> 
     """Serve the form, the status routes and generation as a WSGI application."""
     method = str(environ.get("REQUEST_METHOD", "GET")).upper()
     path = environ.get("PATH_INFO") or "/"
+    if "?" in path:  # tolerate a caller that puts the query on PATH_INFO
+        path, _, inline_query = path.partition("?")
+        if not environ.get("QUERY_STRING"):
+            environ = dict(environ)
+            environ["QUERY_STRING"] = inline_query
 
     if _static_path(path):
         if method != "GET":
@@ -420,7 +430,7 @@ def application(environ: dict[str, Any], start_response: Callable[..., Any]) -> 
                     [("Allow", "GET")],
                 )
             else:
-                status, headers, body = handler()
+                status, headers, body = handler(environ)
 
     start_response(status, headers)
     return [body]

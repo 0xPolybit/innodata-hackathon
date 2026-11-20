@@ -19,7 +19,7 @@ from typing import TYPE_CHECKING, Any
 
 from taskfactory.web import forms
 from taskfactory.web.generate import RESULT_TOO_LARGE_MESSAGE
-from taskfactory.web.results_summary import render_message
+from taskfactory.web.results_summary import back_href, render_message
 from taskfactory.web.theme import ICONS, page_shell
 
 if TYPE_CHECKING:  # avoids importing the generator at page-render time
@@ -61,6 +61,11 @@ CHECK_LABELS = {
 EMPTY_ACCEPTED_MESSAGE = (
     "No tasks were accepted for these settings. Try a different seed or fewer "
     "question types."
+)
+
+ZIP_NOTE = (
+    "This re-runs the same settings to build the ZIP, so it takes about as long "
+    "as the first run."
 )
 
 MAX_PAGE_BYTES = 4_000_000
@@ -196,7 +201,7 @@ def render_results_page(
     """
     page = _page(result, form)
     if len(page.encode("utf-8")) > MAX_PAGE_BYTES:
-        return render_message("Result too large", RESULT_TOO_LARGE_MESSAGE)
+        return render_message("Result too large", RESULT_TOO_LARGE_MESSAGE, form)
     return page
 
 
@@ -258,7 +263,7 @@ def _summary_band(result: "GenerationResult", form: forms.ParsedForm | None) -> 
 </details>
 <div class="band-actions">
 {_download_form(form)}
-<a class="btn btn-outline" href="/">{ICONS["arrow-left"]}<span>Back to the form</span></a>
+<a class="btn btn-outline" href="{back_href(form)}">{ICONS["arrow-left"]}<span>Back to the form</span></a>
 </div>
 </div>
 </section>"""
@@ -474,6 +479,7 @@ def _download_form(form: forms.ParsedForm | None) -> str:
     return f"""<form method="post" action="/api/zip">
 {hidden}
 <button class="btn btn-primary" type="submit">{_ICONS["download"]}<span>Download ZIP</span></button>
+<p class="hint">{escape(ZIP_NOTE)}</p>
 </form>"""
 
 

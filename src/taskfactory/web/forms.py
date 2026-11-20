@@ -83,6 +83,12 @@ LONG_VALUE_MESSAGE = "A form value is too long. Reload the form and try again."
 # single choice, so a repeated one is a malformed request.
 _MULTI_FIELDS = frozenset({"chart_types", "question_types"})
 
+# The words a query string may use to turn the image checkbox on or off. The
+# form itself only sends "on" when it is checked, but a back link says "off"
+# explicitly so a missing field can keep the default.
+_QUERY_ON_VALUES = frozenset({"1", "true", "yes", "on"})
+_QUERY_OFF_VALUES = frozenset({"", "0", "false", "no", "off"})
+
 
 class FormError(ValueError):
     """A submitted form value the user can fix, with one user-facing message."""
@@ -236,6 +242,86 @@ def parse_form(values: Mapping[str, Any]) -> ParsedForm:
         difficulty=difficulty,
         question_in_image=question_in_image,
     )
+
+
+def parse_query(values: Mapping[str, Any] | None) -> dict[str, Any]:
+    """The form values a GET query asks for, falling back per field.
+
+    A GET is a link, not a form submission: an invalid value must never raise
+    or show a validation error. Each value is checked with the same rules as
+    :func:`parse_form`; a value the form would refuse falls back to
+    :data:`FORM_DEFAULTS` for that field, and a combination the form would
+    refuse falls back to the defaults. An absent image checkbox keeps the
+    default, while an explicit ``off`` leaves it unchecked.
+    """
+    if not values:
+        return _form_values(parse_form(default_form_payload()))
+
+    sanitized: dict[str, Any] = {}
+    if "seed" in values:
+        try:
+            sanitized["seed"] = _parse_seed(_scalar(values, "seed"))
+        except FormError:
+            pass
+    if "charts_per_type" in values:
+        try:
+            sanitized["charts_per_type"] = _parse_charts(
+                _scalar(values, "charts_per_type")
+            )
+        except FormError:
+            pass
+
+    chart_choices = _selections(values, "chart_types")
+    if chart_choices is not None:
+        known = [name for name in CHART_TYPES if name in chart_choices]
+        if known:
+            sanitized["chart_types"] = known
+
+    question_choices = _selections(values, "question_types")
+    if question_choices is not None:
+        known = [name for name in QUESTION_TYPES if name in question_choices]
+        if known:
+            sanitized["question_types"] = known
+
+    if "topic" in values:
+        sanitized["topic"] = _parse_choice(
+            _scalar(values, "topic"), TOPICS, FORM_DEFAULTS["topic"]
+        )
+    if "difficulty" in values:
+        sanitized["difficulty"] = _parse_choice(
+            _scalar(values, "difficulty"), DIFFICULTIES, FORM_DEFAULTS["difficulty"]
+        )
+    sanitized["question_in_image"] = _query_checkbox(values)
+
+    try:
+        return _form_values(parse_form(sanitized))
+    except FormError:
+        return _form_values(parse_form(default_form_payload()))
+
+
+def _query_checkbox(values: Mapping[str, Any]) -> bool:
+    """The image toggle from a query string; absent keeps the form default."""
+    if "question_in_image" not in values:
+        return bool(FORM_DEFAULTS["question_in_image"])
+    text = str(_scalar(values, "question_in_image")).strip().lower()
+    if text in _QUERY_OFF_VALUES:
+        return False
+    if text in _QUERY_ON_VALUES:
+        return True
+    return bool(FORM_DEFAULTS["question_in_image"])
+
+
+def _form_values(form: ParsedForm) -> dict[str, Any]:
+    """A parsed form as the values :func:`render_page` expects."""
+    return {
+        "seed": form.seed,
+        "charts_per_type": form.charts_per_type,
+        "chart_types": list(form.chart_types),
+        "topic": form.topic,
+        "question_types": list(form.question_types),
+        "difficulty": form.difficulty,
+        "question_in_image": form.question_in_image,
+    }
 
 
 def _check_shape(values: Mapping[str, Any]) -> None:

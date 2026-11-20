@@ -10,13 +10,37 @@ from __future__ import annotations
 
 from html import escape
 from typing import TYPE_CHECKING
+from urllib.parse import urlencode
 
+from taskfactory.web import forms
 from taskfactory.web.theme import ICONS, page_shell
 
 if TYPE_CHECKING:  # avoids importing the generator at page-render time
     from taskfactory.web.generate import GenerationResult, TaskSummary
 
-__all__ = ["render_message", "render_results"]
+__all__ = ["back_href", "form_query", "render_message", "render_results"]
+
+
+def form_query(form: forms.ParsedForm) -> str:
+    """The query string that pre-fills the form with ``form``'s choices."""
+    pairs: list[tuple[str, str]] = [
+        ("seed", str(form.seed)),
+        ("charts_per_type", str(form.charts_per_type)),
+    ]
+    pairs.extend(("chart_types", name) for name in form.chart_types)
+    pairs.append(("topic", form.topic))
+    pairs.extend(("question_types", name) for name in form.question_types)
+    pairs.append(("difficulty", form.difficulty))
+    pairs.append(("question_in_image", "on" if form.question_in_image else "off"))
+    return urlencode(pairs)
+
+
+def back_href(form: forms.ParsedForm | None = None) -> str:
+    """The form page carrying ``form``'s choices, or plain ``/`` without a form."""
+    if form is None:
+        return "/"
+    return f"/?{form_query(form)}"
+
 
 _STYLE = """
 :root { color-scheme: light dark; }
@@ -136,15 +160,22 @@ def render_results(result: "GenerationResult") -> str:
 """
 
 
-def render_message(title: str, message: str) -> str:
+def render_message(
+    title: str,
+    message: str,
+    form: forms.ParsedForm | None = None,
+) -> str:
     """A designed page for a validation, busy or generation failure.
 
     The words are the caller's, unchanged and escaped. A busy generator and a
     spent compute allowance are warnings; every other failure is destructive.
+    ``form`` carries the settings a retry should start from; without one the
+    Back link is plain ``/``.
     """
     warning = title in {"Generator busy", "Compute limit reached"}
     kind = "warning" if warning else "destructive"
     icon = "info" if warning else "alert-triangle"
+    href = back_href(form)
     body = f"""<div class="card error-card delay-1">
 <div class="card-header">
 <h1 class="card-title">{escape(title)}</h1>
@@ -152,7 +183,7 @@ def render_message(title: str, message: str) -> str:
 <div class="card-content">
 <div class="alert alert-{kind}" role="alert">{ICONS[icon]}<p>{escape(message)}</p></div>
 <div class="error-actions">
-<a class="btn btn-outline" href="/">{ICONS["arrow-left"]}<span>Back to the form</span></a>
+<a class="btn btn-outline" href="{href}">{ICONS["arrow-left"]}<span>Back to the form</span></a>
 </div>
 </div>
 </div>"""
