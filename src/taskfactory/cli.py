@@ -256,6 +256,70 @@ def _diff_command(args: argparse.Namespace) -> int:
     return result.exit_code
 
 
+def _port_number(value: str) -> int:
+    """An integer port from 1 to 65535."""
+    try:
+        port = int(value)
+    except ValueError:
+        raise argparse.ArgumentTypeError(f"invalid port: {value!r}") from None
+    if not 1 <= port <= 65535:
+        raise argparse.ArgumentTypeError("port must be between 1 and 65535")
+    return port
+
+
+def _add_serve_command(subparsers: Any) -> None:
+    """Register ``tf serve``, which runs the form app on Waitress."""
+    serve = subparsers.add_parser(
+        "serve",
+        help="serve the form app on the local machine",
+        description=(
+            "Serve the TaskFactory form with Waitress. The defaults bind to 127.0.0.1:8000, "
+            "so only this machine can reach it; --allow-remote is required for any other host. "
+            "No browser is opened automatically."
+        ),
+    )
+    serve.add_argument(
+        "--host",
+        default="127.0.0.1",
+        help="interface to bind (default: 127.0.0.1)",
+    )
+    serve.add_argument(
+        "--port",
+        default=8000,
+        type=_port_number,
+        help="port to bind, 1 to 65535 (default: 8000)",
+    )
+    serve.add_argument(
+        "--allow-remote",
+        action="store_true",
+        help="allow a host other than 127.0.0.1 or localhost",
+    )
+    serve.set_defaults(func=_serve_command)
+
+
+def _serve_command(args: argparse.Namespace) -> int:
+    """Handle ``tf serve``: check the host, then run Waitress until Ctrl+C."""
+    if args.host not in {"127.0.0.1", "localhost"} and not args.allow_remote:
+        print(
+            f"tf serve: error: refusing to bind to {args.host!r}; "
+            "use --allow-remote to serve other machines",
+            file=sys.stderr,
+        )
+        return 2
+
+    # Imported here so that --help and the other subcommands do not load Waitress.
+    from taskfactory.web.app import application
+    from waitress import serve
+
+    print(
+        f"TaskFactory is running at http://{args.host}:{args.port} "
+        "(press Ctrl+C to stop)",
+        flush=True,
+    )
+    serve(application, host=args.host, port=args.port)
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     """Build the ``tf`` argument parser."""
     parser = argparse.ArgumentParser(
@@ -285,6 +349,9 @@ def build_parser() -> argparse.ArgumentParser:
             description=f"{name} (not implemented yet)",
         )
         subparser.set_defaults(func=_not_implemented)
+    # Registered outside the loop: COMMANDS is also the list the placeholder smoke
+    # test iterates, and serve must never be mistaken for a placeholder.
+    _add_serve_command(subparsers)
     return parser
 
 
