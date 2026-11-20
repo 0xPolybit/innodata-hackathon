@@ -1,0 +1,13 @@
+{
+  "answer": "Germany",
+  "answer_category": "Germany",
+  "answer_printed_in_image": true,
+  "answer_value": 35694216,
+  "domain": "tourism",
+  "family": "bar",
+  "question": "Which category ranks third by value?",
+  "question_in_image": true,
+  "reasoning_steps": 5,
+  "spec_index": 2,
+  "task_type": "rank_k"
+}

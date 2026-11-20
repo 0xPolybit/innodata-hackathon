@@ -1,0 +1,13 @@
+{
+  "answer": "Italy",
+  "answer_category": "Italy",
+  "answer_printed_in_image": true,
+  "answer_value": 84847319,
+  "domain": "tourism",
+  "family": "bar",
+  "question": "Which category has the highest value?",
+  "question_in_image": true,
+  "reasoning_steps": 6,
+  "spec_index": 5,
+  "task_type": "extremum"
+}

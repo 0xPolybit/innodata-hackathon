@@ -1,0 +1,14 @@
+{
+  "answer": "Spain",
+  "answer_category": "Spain",
+  "answer_printed_in_image": true,
+  "answer_value": 66968883,
+  "domain": "tourism",
+  "family": "line",
+  "question": "Which series is highest in 2025?",
+  "question_in_image": true,
+  "reasoning_steps": 3,
+  "spec_index": 5,
+  "task_type": "series_at_x",
+  "year": "2025"
+}

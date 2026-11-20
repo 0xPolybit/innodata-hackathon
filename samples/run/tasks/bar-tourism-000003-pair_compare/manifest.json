@@ -1,0 +1,29 @@
+{
+  "config_hash": "761201870e06b942e498359c98dc02416fe0ccde38888a33da14d2f7651e80c6",
+  "files": {
+    "image.png": {
+      "bytes": 29652,
+      "sha256": "f68056f39dbb690013e2f1a6473f24bb900154d3f34d670999524af86faed68e"
+    },
+    "spec.json": {
+      "bytes": 598,
+      "sha256": "277f68b18c5a201ba87fcf2341ef9bb9e13d0146a07f6c5e56a406880f455999"
+    },
+    "task.json": {
+      "bytes": 312,
+      "sha256": "2bf0553409d7a09ad0f4a2e4cd124c844a2e21c1f2e36459845f94f992af10da"
+    },
+    "text_boxes.json": {
+      "bytes": 1811,
+      "sha256": "5cf054b5f3c93d763073e5dcacb9368c1b7aa1ddb178978d9dd688413710c1a6"
+    }
+  },
+  "git_sha": "ab939cb14db8b9346b5742033ed63e277818f333",
+  "package_id": "bar-tourism-000003-pair_compare",
+  "versions": {
+    "matplotlib": "3.11.2",
+    "numpy": "2.5.5",
+    "pillow": "13.0.0",
+    "python": "3.14.6"
+  }
+}

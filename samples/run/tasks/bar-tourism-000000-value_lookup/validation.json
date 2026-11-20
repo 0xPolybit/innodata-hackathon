@@ -1,0 +1,179 @@
+{
+  "checks": [
+    {
+      "check": "1_schema",
+      "details": {
+        "failed_rules": [],
+        "failures": [],
+        "spec_error": null,
+        "spec_valid": true,
+        "task_is_object": true,
+        "task_type": "value_lookup"
+      },
+      "passed": true
+    },
+    {
+      "check": "2_layout",
+      "details": {
+        "box_count": 11,
+        "canvas": [
+          1200.0,
+          800.0
+        ],
+        "malformed_boxes": [],
+        "min_font_px": 9,
+        "outside_canvas": [],
+        "overlapping_pairs": [],
+        "small_font_boxes": []
+      },
+      "passed": true
+    },
+    {
+      "check": "3_ambiguity",
+      "details": {
+        "duplicate_labels": [],
+        "duplicate_values": [],
+        "failed_rules": [],
+        "labels": [
+          "40.6M",
+          "81.1M",
+          "67.6M",
+          "30.8M"
+        ],
+        "largest": 81143094,
+        "margin": 0.1667451822825489,
+        "min_margin": 0.05,
+        "second_largest": 67612874,
+        "values": [
+          40616457,
+          81143094,
+          67612874,
+          30777817
+        ]
+      },
+      "passed": true
+    },
+    {
+      "check": "7_redraw",
+      "details": {
+        "caption_matches": true,
+        "caption_present": true,
+        "caption_required": true,
+        "caption_texts": [
+          "What value is shown for Germany?"
+        ],
+        "failed_rules": [],
+        "hashes_match": true,
+        "image_sha256": "5f542599cc7f6452c00b6a4f267bb2ceab3ed09fcf837bb8ca03ce2cbc67aeeb",
+        "question_in_image": true,
+        "redraw_sha256": "5f542599cc7f6452c00b6a4f267bb2ceab3ed09fcf837bb8ca03ce2cbc67aeeb",
+        "render_error": null
+      },
+      "passed": true
+    },
+    {
+      "check": "4_ocr",
+      "details": {
+        "caption_masked": true,
+        "found": {
+          "30.8m": true,
+          "germany": true
+        },
+        "found_via": {
+          "30.8m": "full",
+          "germany": "full"
+        },
+        "ocr_text": "international tourist arrivals (2022) 40.6m spain mexico 81.1m france 67.6m germany 30.8m synthetic data",
+        "required": [
+          "30.8m",
+          "germany"
+        ],
+        "tesseract_version": "5.4.0.20240606"
+      },
+      "passed": true
+    },
+    {
+      "check": "5_pixels",
+      "details": {
+        "bar_count": 4,
+        "bars": [
+          {
+            "category_label": "Spain",
+            "length_px": 475,
+            "rect": [
+              143,
+              117,
+              475,
+              95
+            ],
+            "value_label": "40.6M"
+          },
+          {
+            "category_label": "Mexico",
+            "length_px": 951,
+            "rect": [
+              143,
+              276,
+              951,
+              95
+            ],
+            "value_label": "81.1M"
+          },
+          {
+            "category_label": "France",
+            "length_px": 792,
+            "rect": [
+              143,
+              435,
+              792,
+              95
+            ],
+            "value_label": "67.6M"
+          },
+          {
+            "category_label": "Germany",
+            "length_px": 359,
+            "rect": [
+              143,
+              593,
+              359,
+              95
+            ],
+            "value_label": "30.8M"
+          }
+        ],
+        "category_count": 4,
+        "expected_answer": "30.8M",
+        "match": true,
+        "orientation": "horizontal",
+        "orientation_confirmed": true,
+        "pixel_answer": "30.8M",
+        "reasons": [],
+        "rejected_regions": 0,
+        "task_type": "value_lookup"
+      },
+      "passed": true
+    },
+    {
+      "check": "6_counterfactual",
+      "details": {
+        "altered_answer": "46.2M",
+        "altered_values": [
+          40616457,
+          81143094,
+          67612874,
+          46166726
+        ],
+        "changed": true,
+        "original_answer": "30.8M",
+        "pixel_answer_after_redraw": "46.2M",
+        "reader_passed": true,
+        "reasons": [],
+        "task_type": "value_lookup"
+      },
+      "passed": true
+    }
+  ],
+  "package_id": "bar-tourism-000000-value_lookup",
+  "passed": true
+}

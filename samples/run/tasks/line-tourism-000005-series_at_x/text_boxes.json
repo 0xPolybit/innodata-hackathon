@@ -1,0 +1,188 @@
+[
+  {
+    "bbox": [
+      40,
+      26,
+      590,
+      58
+    ],
+    "font_px": 31,
+    "role": "title",
+    "text": "International tourist arrivals (2018)"
+  },
+  {
+    "bbox": [
+      442,
+      98,
+      507,
+      118
+    ],
+    "font_px": 19,
+    "role": "legend",
+    "text": "France"
+  },
+  {
+    "bbox": [
+      599,
+      98,
+      666,
+      118
+    ],
+    "font_px": 19,
+    "role": "legend",
+    "text": "Mexico"
+  },
+  {
+    "bbox": [
+      758,
+      98,
+      812,
+      118
+    ],
+    "font_px": 19,
+    "role": "legend",
+    "text": "Spain"
+  },
+  {
+    "anchor": [
+      110,
+      693
+    ],
+    "bbox": [
+      85,
+      700,
+      134,
+      721
+    ],
+    "font_px": 19,
+    "role": "category",
+    "text": "2018"
+  },
+  {
+    "anchor": [
+      250,
+      693
+    ],
+    "bbox": [
+      226,
+      700,
+      274,
+      721
+    ],
+    "font_px": 19,
+    "role": "category",
+    "text": "2019"
+  },
+  {
+    "anchor": [
+      390,
+      693
+    ],
+    "bbox": [
+      366,
+      700,
+      414,
+      721
+    ],
+    "font_px": 19,
+    "role": "category",
+    "text": "2020"
+  },
+  {
+    "anchor": [
+      530,
+      693
+    ],
+    "bbox": [
+      506,
+      700,
+      554,
+      721
+    ],
+    "font_px": 19,
+    "role": "category",
+    "text": "2021"
+  },
+  {
+    "anchor": [
+      670,
+      693
+    ],
+    "bbox": [
+      646,
+      700,
+      694,
+      721
+    ],
+    "font_px": 19,
+    "role": "category",
+    "text": "2022"
+  },
+  {
+    "anchor": [
+      810,
+      693
+    ],
+    "bbox": [
+      786,
+      700,
+      834,
+      721
+    ],
+    "font_px": 19,
+    "role": "category",
+    "text": "2023"
+  },
+  {
+    "anchor": [
+      950,
+      693
+    ],
+    "bbox": [
+      926,
+      700,
+      974,
+      721
+    ],
+    "font_px": 19,
+    "role": "category",
+    "text": "2024"
+  },
+  {
+    "anchor": [
+      1090,
+      693
+    ],
+    "bbox": [
+      1066,
+      700,
+      1114,
+      721
+    ],
+    "font_px": 19,
+    "role": "category",
+    "text": "2025"
+  },
+  {
+    "bbox": [
+      40,
+      763,
+      142,
+      778
+    ],
+    "font_px": 14,
+    "role": "footer",
+    "text": "Synthetic data"
+  },
+  {
+    "bbox": [
+      40,
+      734,
+      345,
+      754
+    ],
+    "font_px": 19,
+    "role": "caption",
+    "text": "Which series is highest in 2025?"
+  }
+]

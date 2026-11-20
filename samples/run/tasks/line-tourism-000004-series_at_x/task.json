@@ -1,0 +1,14 @@
+{
+  "answer": "France",
+  "answer_category": "France",
+  "answer_printed_in_image": true,
+  "answer_value": 72661926,
+  "domain": "tourism",
+  "family": "line",
+  "question": "Which series is highest in 2016?",
+  "question_in_image": true,
+  "reasoning_steps": 2,
+  "spec_index": 4,
+  "task_type": "series_at_x",
+  "year": "2016"
+}

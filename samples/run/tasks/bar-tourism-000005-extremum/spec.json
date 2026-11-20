@@ -1,0 +1,40 @@
+{
+  "domain": "tourism",
+  "family": "bar",
+  "index": 5,
+  "orientation": "vertical",
+  "question_in_image": true,
+  "seed": 2565455803,
+  "series": [
+    {
+      "labels": [
+        "21.3M",
+        "66.6M",
+        "38.7M",
+        "8.1M",
+        "84.8M",
+        "33.3M"
+      ],
+      "name": "",
+      "values": [
+        21343789,
+        66551819,
+        38726563,
+        8130423,
+        84847319,
+        33334881
+      ]
+    }
+  ],
+  "spec_version": 1,
+  "title": "International tourist arrivals (2023)",
+  "x_label_rotation": 0,
+  "x_labels": [
+    "Japan",
+    "France",
+    "Turkey",
+    "Spain",
+    "Italy",
+    "Thailand"
+  ]
+}

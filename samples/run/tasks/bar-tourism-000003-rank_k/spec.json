@@ -1,0 +1,37 @@
+{
+  "domain": "tourism",
+  "family": "bar",
+  "index": 3,
+  "orientation": "horizontal",
+  "question_in_image": true,
+  "seed": 2130098123,
+  "series": [
+    {
+      "labels": [
+        "51.2M",
+        "54.6M",
+        "3.8M",
+        "6.7M",
+        "65.4M"
+      ],
+      "name": "",
+      "values": [
+        51197900,
+        54604771,
+        3828490,
+        6683830,
+        65430990
+      ]
+    }
+  ],
+  "spec_version": 1,
+  "title": "International tourist arrivals (2016)",
+  "x_label_rotation": 30,
+  "x_labels": [
+    "France",
+    "Japan",
+    "Turkey",
+    "Mexico",
+    "Spain"
+  ]
+}

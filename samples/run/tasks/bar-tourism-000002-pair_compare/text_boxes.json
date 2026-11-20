@@ -1,0 +1,145 @@
+[
+  {
+    "bbox": [
+      40,
+      26,
+      590,
+      58
+    ],
+    "font_px": 31,
+    "role": "title",
+    "text": "International tourist arrivals (2020)"
+  },
+  {
+    "bbox": [
+      116,
+      659,
+      162,
+      697
+    ],
+    "font_px": 19,
+    "role": "category",
+    "text": "Italy"
+  },
+  {
+    "bbox": [
+      299,
+      659,
+      386,
+      721
+    ],
+    "font_px": 19,
+    "role": "category",
+    "text": "Germany"
+  },
+  {
+    "bbox": [
+      544,
+      659,
+      610,
+      708
+    ],
+    "font_px": 19,
+    "role": "category",
+    "text": "France"
+  },
+  {
+    "bbox": [
+      769,
+      659,
+      834,
+      708
+    ],
+    "font_px": 19,
+    "role": "category",
+    "text": "Turkey"
+  },
+  {
+    "bbox": [
+      1001,
+      659,
+      1058,
+      703
+    ],
+    "font_px": 19,
+    "role": "category",
+    "text": "Japan"
+  },
+  {
+    "bbox": [
+      123,
+      142,
+      181,
+      162
+    ],
+    "font_px": 19,
+    "role": "value",
+    "text": "62.0M"
+  },
+  {
+    "bbox": [
+      347,
+      347,
+      405,
+      367
+    ],
+    "font_px": 19,
+    "role": "value",
+    "text": "35.7M"
+  },
+  {
+    "bbox": [
+      571,
+      87,
+      629,
+      107
+    ],
+    "font_px": 19,
+    "role": "value",
+    "text": "69.0M"
+  },
+  {
+    "bbox": [
+      795,
+      498,
+      853,
+      518
+    ],
+    "font_px": 19,
+    "role": "value",
+    "text": "16.4M"
+  },
+  {
+    "bbox": [
+      1019,
+      508,
+      1077,
+      528
+    ],
+    "font_px": 19,
+    "role": "value",
+    "text": "15.1M"
+  },
+  {
+    "bbox": [
+      40,
+      763,
+      142,
+      778
+    ],
+    "font_px": 14,
+    "role": "footer",
+    "text": "Synthetic data"
+  },
+  {
+    "bbox": [
+      40,
+      734,
+      358,
+      754
+    ],
+    "font_px": 19,
+    "role": "caption",
+    "text": "Which is higher, France or Japan?"
+  }
+]

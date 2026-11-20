@@ -1,0 +1,189 @@
+[
+  {
+    "bbox": [
+      40,
+      26,
+      590,
+      58
+    ],
+    "font_px": 31,
+    "role": "title",
+    "text": "International tourist arrivals (2018)"
+  },
+  {
+    "bbox": [
+      93,
+      700,
+      147,
+      721
+    ],
+    "font_px": 19,
+    "role": "category",
+    "text": "Spain"
+  },
+  {
+    "bbox": [
+      259,
+      700,
+      301,
+      721
+    ],
+    "font_px": 19,
+    "role": "category",
+    "text": "Italy"
+  },
+  {
+    "bbox": [
+      398,
+      700,
+      481,
+      721
+    ],
+    "font_px": 19,
+    "role": "category",
+    "text": "Thailand"
+  },
+  {
+    "bbox": [
+      555,
+      700,
+      645,
+      721
+    ],
+    "font_px": 19,
+    "role": "category",
+    "text": "Germany"
+  },
+  {
+    "bbox": [
+      733,
+      700,
+      787,
+      721
+    ],
+    "font_px": 19,
+    "role": "category",
+    "text": "Japan"
+  },
+  {
+    "bbox": [
+      888,
+      700,
+      952,
+      721
+    ],
+    "font_px": 19,
+    "role": "category",
+    "text": "France"
+  },
+  {
+    "bbox": [
+      1048,
+      700,
+      1112,
+      721
+    ],
+    "font_px": 19,
+    "role": "category",
+    "text": "Turkey"
+  },
+  {
+    "bbox": [
+      91,
+      87,
+      149,
+      107
+    ],
+    "font_px": 19,
+    "role": "value",
+    "text": "78.5M"
+  },
+  {
+    "bbox": [
+      251,
+      582,
+      309,
+      603
+    ],
+    "font_px": 19,
+    "role": "value",
+    "text": "11.5M"
+  },
+  {
+    "bbox": [
+      411,
+      158,
+      469,
+      178
+    ],
+    "font_px": 19,
+    "role": "value",
+    "text": "68.9M"
+  },
+  {
+    "bbox": [
+      571,
+      515,
+      629,
+      536
+    ],
+    "font_px": 19,
+    "role": "value",
+    "text": "20.5M"
+  },
+  {
+    "bbox": [
+      731,
+      156,
+      789,
+      177
+    ],
+    "font_px": 19,
+    "role": "value",
+    "text": "69.1M"
+  },
+  {
+    "bbox": [
+      891,
+      531,
+      949,
+      551
+    ],
+    "font_px": 19,
+    "role": "value",
+    "text": "18.5M"
+  },
+  {
+    "bbox": [
+      1051,
+      371,
+      1109,
+      392
+    ],
+    "font_px": 19,
+    "role": "value",
+    "text": "40.1M"
+  },
+  {
+    "bbox": [
+      40,
+      763,
+      142,
+      778
+    ],
+    "font_px": 14,
+    "role": "footer",
+    "text": "Synthetic data"
+  },
+  {
+    "bbox": [
+      40,
+      734,
+      409,
+      754
+    ],
+    "font_px": 19,
+    "role": "caption",
+    "text": "Which category has the highest value?"
+  }
+]

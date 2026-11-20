@@ -1,0 +1,13 @@
+{
+  "answer": "France",
+  "answer_category": "France",
+  "answer_printed_in_image": true,
+  "answer_value": 69015970,
+  "domain": "tourism",
+  "family": "bar",
+  "question": "Which is higher, France or Japan?",
+  "question_in_image": true,
+  "reasoning_steps": 2,
+  "spec_index": 2,
+  "task_type": "pair_compare"
+}

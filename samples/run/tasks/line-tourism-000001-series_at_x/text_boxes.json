@@ -1,0 +1,173 @@
+[
+  {
+    "bbox": [
+      40,
+      26,
+      590,
+      58
+    ],
+    "font_px": 31,
+    "role": "title",
+    "text": "International tourist arrivals (2017)"
+  },
+  {
+    "bbox": [
+      440,
+      98,
+      505,
+      118
+    ],
+    "font_px": 19,
+    "role": "legend",
+    "text": "France"
+  },
+  {
+    "bbox": [
+      597,
+      98,
+      680,
+      118
+    ],
+    "font_px": 19,
+    "role": "legend",
+    "text": "Thailand"
+  },
+  {
+    "bbox": [
+      772,
+      98,
+      814,
+      118
+    ],
+    "font_px": 19,
+    "role": "legend",
+    "text": "Italy"
+  },
+  {
+    "anchor": [
+      120,
+      693
+    ],
+    "bbox": [
+      96,
+      700,
+      144,
+      721
+    ],
+    "font_px": 19,
+    "role": "category",
+    "text": "2019"
+  },
+  {
+    "anchor": [
+      280,
+      693
+    ],
+    "bbox": [
+      256,
+      700,
+      304,
+      721
+    ],
+    "font_px": 19,
+    "role": "category",
+    "text": "2020"
+  },
+  {
+    "anchor": [
+      440,
+      693
+    ],
+    "bbox": [
+      415,
+      700,
+      464,
+      721
+    ],
+    "font_px": 19,
+    "role": "category",
+    "text": "2021"
+  },
+  {
+    "anchor": [
+      600,
+      693
+    ],
+    "bbox": [
+      576,
+      700,
+      624,
+      721
+    ],
+    "font_px": 19,
+    "role": "category",
+    "text": "2022"
+  },
+  {
+    "anchor": [
+      760,
+      693
+    ],
+    "bbox": [
+      736,
+      700,
+      784,
+      721
+    ],
+    "font_px": 19,
+    "role": "category",
+    "text": "2023"
+  },
+  {
+    "anchor": [
+      920,
+      693
+    ],
+    "bbox": [
+      896,
+      700,
+      945,
+      721
+    ],
+    "font_px": 19,
+    "role": "category",
+    "text": "2024"
+  },
+  {
+    "anchor": [
+      1080,
+      693
+    ],
+    "bbox": [
+      1056,
+      700,
+      1104,
+      721
+    ],
+    "font_px": 19,
+    "role": "category",
+    "text": "2025"
+  },
+  {
+    "bbox": [
+      40,
+      763,
+      142,
+      778
+    ],
+    "font_px": 14,
+    "role": "footer",
+    "text": "Synthetic data"
+  },
+  {
+    "bbox": [
+      40,
+      734,
+      345,
+      754
+    ],
+    "font_px": 19,
+    "role": "caption",
+    "text": "Which series is highest in 2021?"
+  }
+]

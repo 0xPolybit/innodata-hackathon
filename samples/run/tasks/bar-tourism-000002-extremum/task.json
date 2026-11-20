@@ -1,0 +1,13 @@
+{
+  "answer": "France",
+  "answer_category": "France",
+  "answer_printed_in_image": true,
+  "answer_value": 69015970,
+  "domain": "tourism",
+  "family": "bar",
+  "question": "Which category has the highest value?",
+  "question_in_image": true,
+  "reasoning_steps": 5,
+  "spec_index": 2,
+  "task_type": "extremum"
+}

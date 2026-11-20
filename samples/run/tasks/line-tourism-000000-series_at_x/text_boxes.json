@@ -1,0 +1,203 @@
+[
+  {
+    "bbox": [
+      40,
+      26,
+      590,
+      58
+    ],
+    "font_px": 31,
+    "role": "title",
+    "text": "International tourist arrivals (2019)"
+  },
+  {
+    "bbox": [
+      459,
+      98,
+      514,
+      118
+    ],
+    "font_px": 19,
+    "role": "legend",
+    "text": "Japan"
+  },
+  {
+    "bbox": [
+      607,
+      98,
+      661,
+      118
+    ],
+    "font_px": 19,
+    "role": "legend",
+    "text": "Spain"
+  },
+  {
+    "bbox": [
+      753,
+      98,
+      795,
+      118
+    ],
+    "font_px": 19,
+    "role": "legend",
+    "text": "Italy"
+  },
+  {
+    "anchor": [
+      102,
+      671
+    ],
+    "bbox": [
+      60,
+      679,
+      112,
+      721
+    ],
+    "font_px": 19,
+    "role": "category",
+    "text": "2017"
+  },
+  {
+    "anchor": [
+      227,
+      671
+    ],
+    "bbox": [
+      185,
+      679,
+      237,
+      721
+    ],
+    "font_px": 19,
+    "role": "category",
+    "text": "2018"
+  },
+  {
+    "anchor": [
+      351,
+      671
+    ],
+    "bbox": [
+      309,
+      679,
+      361,
+      721
+    ],
+    "font_px": 19,
+    "role": "category",
+    "text": "2019"
+  },
+  {
+    "anchor": [
+      476,
+      671
+    ],
+    "bbox": [
+      433,
+      679,
+      486,
+      721
+    ],
+    "font_px": 19,
+    "role": "category",
+    "text": "2020"
+  },
+  {
+    "anchor": [
+      600,
+      671
+    ],
+    "bbox": [
+      558,
+      679,
+      610,
+      721
+    ],
+    "font_px": 19,
+    "role": "category",
+    "text": "2021"
+  },
+  {
+    "anchor": [
+      724,
+      671
+    ],
+    "bbox": [
+      682,
+      679,
+      735,
+      721
+    ],
+    "font_px": 19,
+    "role": "category",
+    "text": "2022"
+  },
+  {
+    "anchor": [
+      849,
+      671
+    ],
+    "bbox": [
+      807,
+      679,
+      859,
+      721
+    ],
+    "font_px": 19,
+    "role": "category",
+    "text": "2023"
+  },
+  {
+    "anchor": [
+      973,
+      671
+    ],
+    "bbox": [
+      931,
+      679,
+      984,
+      721
+    ],
+    "font_px": 19,
+    "role": "category",
+    "text": "2024"
+  },
+  {
+    "anchor": [
+      1098,
+      671
+    ],
+    "bbox": [
+      1056,
+      679,
+      1108,
+      721
+    ],
+    "font_px": 19,
+    "role": "category",
+    "text": "2025"
+  },
+  {
+    "bbox": [
+      40,
+      763,
+      142,
+      778
+    ],
+    "font_px": 14,
+    "role": "footer",
+    "text": "Synthetic data"
+  },
+  {
+    "bbox": [
+      40,
+      734,
+      345,
+      754
+    ],
+    "font_px": 19,
+    "role": "caption",
+    "text": "Which series is highest in 2024?"
+  }
+]

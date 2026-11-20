@@ -1,0 +1,123 @@
+[
+  {
+    "bbox": [
+      40,
+      26,
+      590,
+      58
+    ],
+    "font_px": 31,
+    "role": "title",
+    "text": "International tourist arrivals (2020)"
+  },
+  {
+    "bbox": [
+      108,
+      659,
+      190,
+      717
+    ],
+    "font_px": 19,
+    "role": "category",
+    "text": "Thailand"
+  },
+  {
+    "bbox": [
+      413,
+      659,
+      470,
+      703
+    ],
+    "font_px": 19,
+    "role": "category",
+    "text": "Japan"
+  },
+  {
+    "bbox": [
+      685,
+      659,
+      750,
+      708
+    ],
+    "font_px": 19,
+    "role": "category",
+    "text": "Turkey"
+  },
+  {
+    "bbox": [
+      943,
+      659,
+      1030,
+      721
+    ],
+    "font_px": 19,
+    "role": "category",
+    "text": "Germany"
+  },
+  {
+    "bbox": [
+      151,
+      87,
+      209,
+      107
+    ],
+    "font_px": 19,
+    "role": "value",
+    "text": "42.5M"
+  },
+  {
+    "bbox": [
+      430,
+      122,
+      489,
+      142
+    ],
+    "font_px": 19,
+    "role": "value",
+    "text": "39.7M"
+  },
+  {
+    "bbox": [
+      711,
+      169,
+      769,
+      190
+    ],
+    "font_px": 19,
+    "role": "value",
+    "text": "36.0M"
+  },
+  {
+    "bbox": [
+      991,
+      360,
+      1049,
+      381
+    ],
+    "font_px": 19,
+    "role": "value",
+    "text": "20.9M"
+  },
+  {
+    "bbox": [
+      40,
+      763,
+      142,
+      778
+    ],
+    "font_px": 14,
+    "role": "footer",
+    "text": "Synthetic data"
+  },
+  {
+    "bbox": [
+      40,
+      734,
+      394,
+      754
+    ],
+    "font_px": 19,
+    "role": "caption",
+    "text": "Which category ranks third by value?"
+  }
+]

@@ -1,0 +1,190 @@
+{
+  "checks": [
+    {
+      "check": "1_schema",
+      "details": {
+        "failed_rules": [],
+        "failures": [],
+        "spec_error": null,
+        "spec_valid": true,
+        "task_is_object": true,
+        "task_type": "rank_k"
+      },
+      "passed": true
+    },
+    {
+      "check": "2_layout",
+      "details": {
+        "box_count": 13,
+        "canvas": [
+          1200.0,
+          800.0
+        ],
+        "malformed_boxes": [],
+        "min_font_px": 9,
+        "outside_canvas": [],
+        "overlapping_pairs": [],
+        "small_font_boxes": []
+      },
+      "passed": true
+    },
+    {
+      "check": "3_ambiguity",
+      "details": {
+        "duplicate_labels": [],
+        "duplicate_values": [],
+        "failed_rules": [],
+        "labels": [
+          "51.2M",
+          "54.6M",
+          "3.8M",
+          "6.7M",
+          "65.4M"
+        ],
+        "largest": 65430990,
+        "margin": 0.16546011301372637,
+        "min_margin": 0.05,
+        "second_largest": 54604771,
+        "values": [
+          51197900,
+          54604771,
+          3828490,
+          6683830,
+          65430990
+        ]
+      },
+      "passed": true
+    },
+    {
+      "check": "7_redraw",
+      "details": {
+        "caption_matches": true,
+        "caption_present": true,
+        "caption_required": true,
+        "caption_texts": [
+          "Which category ranks fourth by value?"
+        ],
+        "failed_rules": [],
+        "hashes_match": true,
+        "image_sha256": "23c1d9f1db2242802e3bf0f54c73a76251a6dc7d7e8b0daadcd6b1b74ca8cbf1",
+        "question_in_image": true,
+        "redraw_sha256": "23c1d9f1db2242802e3bf0f54c73a76251a6dc7d7e8b0daadcd6b1b74ca8cbf1",
+        "render_error": null
+      },
+      "passed": true
+    },
+    {
+      "check": "4_ocr",
+      "details": {
+        "caption_masked": true,
+        "found": {
+          "mexico": true
+        },
+        "found_via": {
+          "mexico": "crop_rot_0"
+        },
+        "ocr_text": "international tourist arrivals (2016) synthetic data",
+        "required": [
+          "mexico"
+        ],
+        "tesseract_version": "5.4.0.20240606"
+      },
+      "passed": true
+    },
+    {
+      "check": "5_pixels",
+      "details": {
+        "bar_count": 5,
+        "bars": [
+          {
+            "category_label": "France",
+            "length_px": 762,
+            "rect": [
+              120,
+              111,
+              762,
+              76
+            ],
+            "value_label": "51.2M"
+          },
+          {
+            "category_label": "Japan",
+            "length_px": 813,
+            "rect": [
+              120,
+              238,
+              813,
+              76
+            ],
+            "value_label": "54.6M"
+          },
+          {
+            "category_label": "Turkey",
+            "length_px": 55,
+            "rect": [
+              120,
+              365,
+              55,
+              76
+            ],
+            "value_label": "3.8M"
+          },
+          {
+            "category_label": "Mexico",
+            "length_px": 97,
+            "rect": [
+              120,
+              492,
+              97,
+              76
+            ],
+            "value_label": "6.7M"
+          },
+          {
+            "category_label": "Spain",
+            "length_px": 974,
+            "rect": [
+              120,
+              619,
+              974,
+              76
+            ],
+            "value_label": "65.4M"
+          }
+        ],
+        "category_count": 5,
+        "expected_answer": "Mexico",
+        "match": true,
+        "orientation": "horizontal",
+        "orientation_confirmed": true,
+        "pixel_answer": "Mexico",
+        "reasons": [],
+        "rejected_regions": 0,
+        "task_type": "rank_k"
+      },
+      "passed": true
+    },
+    {
+      "check": "6_counterfactual",
+      "details": {
+        "altered_answer": "France",
+        "altered_values": [
+          6683830,
+          54604771,
+          3828490,
+          51197900,
+          65430990
+        ],
+        "changed": true,
+        "original_answer": "Mexico",
+        "pixel_answer_after_redraw": "France",
+        "reader_passed": true,
+        "reasons": [],
+        "task_type": "rank_k"
+      },
+      "passed": true
+    }
+  ],
+  "package_id": "bar-tourism-000003-rank_k",
+  "passed": true
+}

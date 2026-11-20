@@ -1,0 +1,13 @@
+{
+  "answer": "Turkey",
+  "answer_category": "Turkey",
+  "answer_printed_in_image": true,
+  "answer_value": 35966719,
+  "domain": "tourism",
+  "family": "bar",
+  "question": "Which category ranks third by value?",
+  "question_in_image": true,
+  "reasoning_steps": 4,
+  "spec_index": 4,
+  "task_type": "rank_k"
+}

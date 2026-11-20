@@ -1,0 +1,204 @@
+{
+  "checks": [
+    {
+      "check": "1_schema",
+      "details": {
+        "failed_rules": [],
+        "failures": [],
+        "spec_error": null,
+        "spec_valid": true,
+        "task_is_object": true,
+        "task_type": "rank_k"
+      },
+      "passed": true
+    },
+    {
+      "check": "2_layout",
+      "details": {
+        "box_count": 15,
+        "canvas": [
+          1200.0,
+          800.0
+        ],
+        "malformed_boxes": [],
+        "min_font_px": 9,
+        "outside_canvas": [],
+        "overlapping_pairs": [],
+        "small_font_boxes": []
+      },
+      "passed": true
+    },
+    {
+      "check": "3_ambiguity",
+      "details": {
+        "duplicate_labels": [],
+        "duplicate_values": [],
+        "failed_rules": [],
+        "labels": [
+          "21.3M",
+          "66.6M",
+          "38.7M",
+          "8.1M",
+          "84.8M",
+          "33.3M"
+        ],
+        "largest": 84847319,
+        "margin": 0.21562849852686566,
+        "min_margin": 0.05,
+        "second_largest": 66551819,
+        "values": [
+          21343789,
+          66551819,
+          38726563,
+          8130423,
+          84847319,
+          33334881
+        ]
+      },
+      "passed": true
+    },
+    {
+      "check": "7_redraw",
+      "details": {
+        "caption_matches": true,
+        "caption_present": true,
+        "caption_required": true,
+        "caption_texts": [
+          "Which category ranks fifth by value?"
+        ],
+        "failed_rules": [],
+        "hashes_match": true,
+        "image_sha256": "bda5156f49512f89b45a91917265931aef3a3ce61dfedf8859abb5162f8143eb",
+        "question_in_image": true,
+        "redraw_sha256": "bda5156f49512f89b45a91917265931aef3a3ce61dfedf8859abb5162f8143eb",
+        "render_error": null
+      },
+      "passed": true
+    },
+    {
+      "check": "4_ocr",
+      "details": {
+        "caption_masked": true,
+        "found": {
+          "japan": true
+        },
+        "found_via": {
+          "japan": "full"
+        },
+        "ocr_text": "international tourist arrivals (2023) 84.8m 66.6m 33.3m 8.1m l_| a france thailand japan turkey spain italy synthetic data",
+        "required": [
+          "japan"
+        ],
+        "tesseract_version": "5.4.0.20240606"
+      },
+      "passed": true
+    },
+    {
+      "check": "5_pixels",
+      "details": {
+        "bar_count": 6,
+        "bars": [
+          {
+            "category_label": "Japan",
+            "length_px": 145,
+            "rect": [
+              77,
+              547,
+              112,
+              145
+            ],
+            "value_label": "21.3M"
+          },
+          {
+            "category_label": "France",
+            "length_px": 455,
+            "rect": [
+              264,
+              237,
+              112,
+              455
+            ],
+            "value_label": "66.6M"
+          },
+          {
+            "category_label": "Turkey",
+            "length_px": 264,
+            "rect": [
+              451,
+              428,
+              112,
+              264
+            ],
+            "value_label": "38.7M"
+          },
+          {
+            "category_label": "Spain",
+            "length_px": 55,
+            "rect": [
+              637,
+              637,
+              112,
+              55
+            ],
+            "value_label": "8.1M"
+          },
+          {
+            "category_label": "Italy",
+            "length_px": 580,
+            "rect": [
+              824,
+              112,
+              112,
+              580
+            ],
+            "value_label": "84.8M"
+          },
+          {
+            "category_label": "Thailand",
+            "length_px": 227,
+            "rect": [
+              1011,
+              465,
+              112,
+              227
+            ],
+            "value_label": "33.3M"
+          }
+        ],
+        "category_count": 6,
+        "expected_answer": "Japan",
+        "match": true,
+        "orientation": "vertical",
+        "orientation_confirmed": true,
+        "pixel_answer": "Japan",
+        "reasons": [],
+        "rejected_regions": 0,
+        "task_type": "rank_k"
+      },
+      "passed": true
+    },
+    {
+      "check": "6_counterfactual",
+      "details": {
+        "altered_answer": "Thailand",
+        "altered_values": [
+          33334881,
+          66551819,
+          38726563,
+          8130423,
+          84847319,
+          21343789
+        ],
+        "changed": true,
+        "original_answer": "Japan",
+        "pixel_answer_after_redraw": "Thailand",
+        "reader_passed": true,
+        "reasons": [],
+        "task_type": "rank_k"
+      },
+      "passed": true
+    }
+  ],
+  "package_id": "bar-tourism-000005-rank_k",
+  "passed": true
+}

@@ -1,0 +1,14 @@
+{
+  "answer": "Japan",
+  "answer_category": "Japan",
+  "answer_printed_in_image": true,
+  "answer_value": 82989909,
+  "domain": "tourism",
+  "family": "line",
+  "question": "Which series is highest in 2024?",
+  "question_in_image": true,
+  "reasoning_steps": 3,
+  "spec_index": 0,
+  "task_type": "series_at_x",
+  "year": "2024"
+}

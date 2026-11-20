@@ -1,0 +1,190 @@
+{
+  "checks": [
+    {
+      "check": "1_schema",
+      "details": {
+        "failed_rules": [],
+        "failures": [],
+        "spec_error": null,
+        "spec_valid": true,
+        "task_is_object": true,
+        "task_type": "pair_compare"
+      },
+      "passed": true
+    },
+    {
+      "check": "2_layout",
+      "details": {
+        "box_count": 13,
+        "canvas": [
+          1200.0,
+          800.0
+        ],
+        "malformed_boxes": [],
+        "min_font_px": 9,
+        "outside_canvas": [],
+        "overlapping_pairs": [],
+        "small_font_boxes": []
+      },
+      "passed": true
+    },
+    {
+      "check": "3_ambiguity",
+      "details": {
+        "duplicate_labels": [],
+        "duplicate_values": [],
+        "failed_rules": [],
+        "labels": [
+          "62.0M",
+          "35.7M",
+          "69.0M",
+          "16.4M",
+          "15.1M"
+        ],
+        "largest": 69015970,
+        "margin": 0.10165625434229209,
+        "min_margin": 0.05,
+        "second_largest": 62000065,
+        "values": [
+          62000065,
+          35694216,
+          69015970,
+          16376225,
+          15069024
+        ]
+      },
+      "passed": true
+    },
+    {
+      "check": "7_redraw",
+      "details": {
+        "caption_matches": true,
+        "caption_present": true,
+        "caption_required": true,
+        "caption_texts": [
+          "Which is higher, France or Japan?"
+        ],
+        "failed_rules": [],
+        "hashes_match": true,
+        "image_sha256": "b8ec06d7b3660bd6ca3e09ddd70a577920756af344d6116aed85f07502c15062",
+        "question_in_image": true,
+        "redraw_sha256": "b8ec06d7b3660bd6ca3e09ddd70a577920756af344d6116aed85f07502c15062",
+        "render_error": null
+      },
+      "passed": true
+    },
+    {
+      "check": "4_ocr",
+      "details": {
+        "caption_masked": true,
+        "found": {
+          "france": true
+        },
+        "found_via": {
+          "france": "crop_rot_-30"
+        },
+        "ocr_text": "international tourist arrivals (2020) 69.0m 62.0m 35.7m 16.4m 15.1m we os o\u00ae yes oe <i as ver? synthetic data",
+        "required": [
+          "france"
+        ],
+        "tesseract_version": "5.4.0.20240606"
+      },
+      "passed": true
+    },
+    {
+      "check": "5_pixels",
+      "details": {
+        "bar_count": 5,
+        "bars": [
+          {
+            "category_label": "Italy",
+            "length_px": 483,
+            "rect": [
+              85,
+              167,
+              134,
+              483
+            ],
+            "value_label": "62.0M"
+          },
+          {
+            "category_label": "Germany",
+            "length_px": 278,
+            "rect": [
+              309,
+              372,
+              134,
+              278
+            ],
+            "value_label": "35.7M"
+          },
+          {
+            "category_label": "France",
+            "length_px": 538,
+            "rect": [
+              533,
+              112,
+              134,
+              538
+            ],
+            "value_label": "69.0M"
+          },
+          {
+            "category_label": "Turkey",
+            "length_px": 127,
+            "rect": [
+              757,
+              523,
+              134,
+              127
+            ],
+            "value_label": "16.4M"
+          },
+          {
+            "category_label": "Japan",
+            "length_px": 117,
+            "rect": [
+              981,
+              533,
+              134,
+              117
+            ],
+            "value_label": "15.1M"
+          }
+        ],
+        "category_count": 5,
+        "expected_answer": "France",
+        "match": true,
+        "orientation": "vertical",
+        "orientation_confirmed": true,
+        "pixel_answer": "France",
+        "reasons": [],
+        "rejected_regions": 0,
+        "task_type": "pair_compare"
+      },
+      "passed": true
+    },
+    {
+      "check": "6_counterfactual",
+      "details": {
+        "altered_answer": "Japan",
+        "altered_values": [
+          62000065,
+          35694216,
+          15069024,
+          16376225,
+          69015970
+        ],
+        "changed": true,
+        "original_answer": "France",
+        "pixel_answer_after_redraw": "Japan",
+        "reader_passed": true,
+        "reasons": [],
+        "task_type": "pair_compare"
+      },
+      "passed": true
+    }
+  ],
+  "package_id": "bar-tourism-000002-pair_compare",
+  "passed": true
+}

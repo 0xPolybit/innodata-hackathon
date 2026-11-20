@@ -1,0 +1,37 @@
+{
+  "domain": "tourism",
+  "family": "bar",
+  "index": 2,
+  "orientation": "vertical",
+  "question_in_image": true,
+  "seed": 110473801,
+  "series": [
+    {
+      "labels": [
+        "62.0M",
+        "35.7M",
+        "69.0M",
+        "16.4M",
+        "15.1M"
+      ],
+      "name": "",
+      "values": [
+        62000065,
+        35694216,
+        69015970,
+        16376225,
+        15069024
+      ]
+    }
+  ],
+  "spec_version": 1,
+  "title": "International tourist arrivals (2020)",
+  "x_label_rotation": 30,
+  "x_labels": [
+    "Italy",
+    "Germany",
+    "France",
+    "Turkey",
+    "Japan"
+  ]
+}

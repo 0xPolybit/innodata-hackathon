@@ -1,0 +1,132 @@
+{
+  "checks": [
+    {
+      "check": "1_schema",
+      "details": {
+        "failed_rules": [],
+        "failures": [],
+        "spec_error": null,
+        "spec_valid": true,
+        "task_is_object": true,
+        "task_type": "series_at_x"
+      },
+      "passed": true
+    },
+    {
+      "check": "2_layout",
+      "details": {
+        "box_count": 14,
+        "canvas": [
+          1200.0,
+          800.0
+        ],
+        "malformed_boxes": [],
+        "min_font_px": 9,
+        "outside_canvas": [],
+        "overlapping_pairs": [],
+        "small_font_boxes": []
+      },
+      "passed": true
+    },
+    {
+      "check": "3_line_ambiguity",
+      "details": {
+        "answer": "Spain",
+        "failed_rules": [],
+        "largest": 66968883,
+        "margin": 0.18927175476407454,
+        "min_margin": 0.05,
+        "reasons": [],
+        "second_largest": 54293565,
+        "top_series": "Spain",
+        "values_at_year": {
+          "France": 54293565,
+          "Mexico": 30270823,
+          "Spain": 66968883
+        },
+        "year": "2025"
+      },
+      "passed": true
+    },
+    {
+      "check": "4_ocr",
+      "details": {
+        "caption_masked": true,
+        "found": {
+          "spain": true
+        },
+        "found_via": {
+          "spain": "full"
+        },
+        "ocr_text": "international tourist arrivals (2018) \u2014e\u2014 france \u2014e mexico \u2014e spain 2018 2019 2020 2021 2022 2023 2024 2025 synthetic data",
+        "required": [
+          "spain"
+        ],
+        "tesseract_version": "5.4.0.20240606"
+      },
+      "passed": true
+    },
+    {
+      "check": "5_line_pixels",
+      "details": {
+        "colours": {
+          "France": [
+            76,
+            114,
+            176
+          ],
+          "Mexico": [
+            221,
+            132,
+            82
+          ],
+          "Spain": [
+            85,
+            168,
+            104
+          ]
+        },
+        "expected_answer": "Spain",
+        "gap_fraction": 0.1346914175506268,
+        "pixel_answer": "Spain",
+        "reasons": [],
+        "x_source": "anchor",
+        "y_positions": {
+          "France": 328.0,
+          "Mexico": 484.852,
+          "Spain": 245.838
+        },
+        "year": "2025",
+        "year_column": 1090
+      },
+      "passed": true
+    },
+    {
+      "check": "6_line_counterfactual",
+      "details": {
+        "altered_answer": "France",
+        "altered_value": 54293565,
+        "changed": true,
+        "original_answer": "Spain",
+        "pixel_answer_after_redraw": "France",
+        "reader_passed": true,
+        "reasons": [],
+        "year": "2025"
+      },
+      "passed": true
+    },
+    {
+      "check": "7_line_redraw",
+      "details": {
+        "hashes_match": true,
+        "image_sha256": "8ded1b29381d6c83d8fe8734d894c3a3e48bf68253b2b22109c761a60b88b860",
+        "question_in_image": true,
+        "reasons": [],
+        "redraw_sha256": "8ded1b29381d6c83d8fe8734d894c3a3e48bf68253b2b22109c761a60b88b860"
+      },
+      "passed": true
+    }
+  ],
+  "package_id": "line-tourism-000005-series_at_x",
+  "passed": true
+}

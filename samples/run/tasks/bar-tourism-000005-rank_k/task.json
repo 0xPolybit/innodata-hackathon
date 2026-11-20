@@ -1,0 +1,13 @@
+{
+  "answer": "Japan",
+  "answer_category": "Japan",
+  "answer_printed_in_image": true,
+  "answer_value": 21343789,
+  "domain": "tourism",
+  "family": "bar",
+  "question": "Which category ranks fifth by value?",
+  "question_in_image": true,
+  "reasoning_steps": 6,
+  "spec_index": 5,
+  "task_type": "rank_k"
+}

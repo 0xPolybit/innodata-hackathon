@@ -1,0 +1,176 @@
+{
+  "checks": [
+    {
+      "check": "1_schema",
+      "details": {
+        "failed_rules": [],
+        "failures": [],
+        "spec_error": null,
+        "spec_valid": true,
+        "task_is_object": true,
+        "task_type": "pair_compare"
+      },
+      "passed": true
+    },
+    {
+      "check": "2_layout",
+      "details": {
+        "box_count": 11,
+        "canvas": [
+          1200.0,
+          800.0
+        ],
+        "malformed_boxes": [],
+        "min_font_px": 9,
+        "outside_canvas": [],
+        "overlapping_pairs": [],
+        "small_font_boxes": []
+      },
+      "passed": true
+    },
+    {
+      "check": "3_ambiguity",
+      "details": {
+        "duplicate_labels": [],
+        "duplicate_values": [],
+        "failed_rules": [],
+        "labels": [
+          "40.6M",
+          "81.1M",
+          "67.6M",
+          "30.8M"
+        ],
+        "largest": 81143094,
+        "margin": 0.1667451822825489,
+        "min_margin": 0.05,
+        "second_largest": 67612874,
+        "values": [
+          40616457,
+          81143094,
+          67612874,
+          30777817
+        ]
+      },
+      "passed": true
+    },
+    {
+      "check": "7_redraw",
+      "details": {
+        "caption_matches": true,
+        "caption_present": true,
+        "caption_required": true,
+        "caption_texts": [
+          "Which is higher, Mexico or Germany?"
+        ],
+        "failed_rules": [],
+        "hashes_match": true,
+        "image_sha256": "3afd9396febec6911116540d9bacfb1502f4e2c5762f50e2528ba9364cb87dd3",
+        "question_in_image": true,
+        "redraw_sha256": "3afd9396febec6911116540d9bacfb1502f4e2c5762f50e2528ba9364cb87dd3",
+        "render_error": null
+      },
+      "passed": true
+    },
+    {
+      "check": "4_ocr",
+      "details": {
+        "caption_masked": true,
+        "found": {
+          "mexico": true
+        },
+        "found_via": {
+          "mexico": "full"
+        },
+        "ocr_text": "international tourist arrivals (2022) 40.6m spain mexico 81.1m france 67.6m germany 30.8m synthetic data",
+        "required": [
+          "mexico"
+        ],
+        "tesseract_version": "5.4.0.20240606"
+      },
+      "passed": true
+    },
+    {
+      "check": "5_pixels",
+      "details": {
+        "bar_count": 4,
+        "bars": [
+          {
+            "category_label": "Spain",
+            "length_px": 475,
+            "rect": [
+              143,
+              117,
+              475,
+              95
+            ],
+            "value_label": "40.6M"
+          },
+          {
+            "category_label": "Mexico",
+            "length_px": 951,
+            "rect": [
+              143,
+              276,
+              951,
+              95
+            ],
+            "value_label": "81.1M"
+          },
+          {
+            "category_label": "France",
+            "length_px": 792,
+            "rect": [
+              143,
+              435,
+              792,
+              95
+            ],
+            "value_label": "67.6M"
+          },
+          {
+            "category_label": "Germany",
+            "length_px": 359,
+            "rect": [
+              143,
+              593,
+              359,
+              95
+            ],
+            "value_label": "30.8M"
+          }
+        ],
+        "category_count": 4,
+        "expected_answer": "Mexico",
+        "match": true,
+        "orientation": "horizontal",
+        "orientation_confirmed": true,
+        "pixel_answer": "Mexico",
+        "reasons": [],
+        "rejected_regions": 0,
+        "task_type": "pair_compare"
+      },
+      "passed": true
+    },
+    {
+      "check": "6_counterfactual",
+      "details": {
+        "altered_answer": "Germany",
+        "altered_values": [
+          40616457,
+          30777817,
+          67612874,
+          81143094
+        ],
+        "changed": true,
+        "original_answer": "Mexico",
+        "pixel_answer_after_redraw": "Germany",
+        "reader_passed": true,
+        "reasons": [],
+        "task_type": "pair_compare"
+      },
+      "passed": true
+    }
+  ],
+  "package_id": "bar-tourism-000000-pair_compare",
+  "passed": true
+}

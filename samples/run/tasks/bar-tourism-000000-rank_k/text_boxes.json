@@ -1,0 +1,123 @@
+[
+  {
+    "bbox": [
+      40,
+      26,
+      590,
+      58
+    ],
+    "font_px": 31,
+    "role": "title",
+    "text": "International tourist arrivals (2022)"
+  },
+  {
+    "bbox": [
+      75,
+      154,
+      129,
+      175
+    ],
+    "font_px": 19,
+    "role": "category",
+    "text": "Spain"
+  },
+  {
+    "bbox": [
+      63,
+      313,
+      129,
+      334
+    ],
+    "font_px": 19,
+    "role": "category",
+    "text": "Mexico"
+  },
+  {
+    "bbox": [
+      65,
+      472,
+      129,
+      492
+    ],
+    "font_px": 19,
+    "role": "category",
+    "text": "France"
+  },
+  {
+    "bbox": [
+      40,
+      631,
+      129,
+      651
+    ],
+    "font_px": 19,
+    "role": "category",
+    "text": "Germany"
+  },
+  {
+    "bbox": [
+      623,
+      154,
+      682,
+      175
+    ],
+    "font_px": 19,
+    "role": "value",
+    "text": "40.6M"
+  },
+  {
+    "bbox": [
+      1100,
+      313,
+      1158,
+      334
+    ],
+    "font_px": 19,
+    "role": "value",
+    "text": "81.1M"
+  },
+  {
+    "bbox": [
+      940,
+      472,
+      999,
+      492
+    ],
+    "font_px": 19,
+    "role": "value",
+    "text": "67.6M"
+  },
+  {
+    "bbox": [
+      507,
+      631,
+      566,
+      651
+    ],
+    "font_px": 19,
+    "role": "value",
+    "text": "30.8M"
+  },
+  {
+    "bbox": [
+      40,
+      763,
+      142,
+      778
+    ],
+    "font_px": 14,
+    "role": "footer",
+    "text": "Synthetic data"
+  },
+  {
+    "bbox": [
+      40,
+      734,
+      394,
+      754
+    ],
+    "font_px": 19,
+    "role": "caption",
+    "text": "Which category ranks third by value?"
+  }
+]

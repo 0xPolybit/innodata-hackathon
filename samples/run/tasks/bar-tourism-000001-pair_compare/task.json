@@ -1,0 +1,13 @@
+{
+  "answer": "Spain",
+  "answer_category": "Spain",
+  "answer_printed_in_image": true,
+  "answer_value": 78501361,
+  "domain": "tourism",
+  "family": "bar",
+  "question": "Which is higher, Spain or Italy?",
+  "question_in_image": true,
+  "reasoning_steps": 2,
+  "spec_index": 1,
+  "task_type": "pair_compare"
+}

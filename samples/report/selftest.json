@@ -1,0 +1,959 @@
+{
+  "clean_passed": 20,
+  "clean_total": 20,
+  "content_only": false,
+  "content_only_per_class": {
+    "absent_entity": {
+      "catch_rate": 1.0,
+      "caught": 9,
+      "injected": 9
+    },
+    "forced_tie": {
+      "catch_rate": 1.0,
+      "caught": 16,
+      "injected": 16
+    },
+    "hidden_label": {
+      "catch_rate": 1.0,
+      "caught": 20,
+      "injected": 20
+    },
+    "mismatched_bar": {
+      "catch_rate": 1.0,
+      "caught": 16,
+      "injected": 16
+    },
+    "wrong_answer": {
+      "catch_rate": 1.0,
+      "caught": 20,
+      "injected": 20
+    }
+  },
+  "details": [
+    {
+      "caught": true,
+      "class": "wrong_answer",
+      "description": "answer 'Coal' changed to 'Biomass'",
+      "failed_checks": [
+        "1_schema",
+        "5_pixels"
+      ],
+      "package": "bar-energy-000000-extremum"
+    },
+    {
+      "caught": true,
+      "class": "hidden_label",
+      "description": "painted over the category box 'Coal'",
+      "failed_checks": [
+        "7_redraw",
+        "4_ocr"
+      ],
+      "package": "bar-energy-000000-extremum"
+    },
+    {
+      "caught": true,
+      "class": "forced_tie",
+      "description": "Biomass raised from 46,602 to 49,552, equal to Coal",
+      "failed_checks": [
+        "1_schema",
+        "3_ambiguity",
+        "5_pixels",
+        "6_counterfactual"
+      ],
+      "package": "bar-energy-000000-extremum"
+    },
+    {
+      "caught": true,
+      "class": "mismatched_bar",
+      "description": "painted over the shortest bar (137 px), leaving 4 bars for 5 categories",
+      "failed_checks": [
+        "7_redraw",
+        "5_pixels"
+      ],
+      "package": "bar-energy-000000-extremum"
+    },
+    {
+      "caught": true,
+      "class": "wrong_answer",
+      "description": "answer 'Biomass' changed to 'Geothermal'",
+      "failed_checks": [
+        "1_schema",
+        "5_pixels",
+        "6_counterfactual"
+      ],
+      "package": "bar-energy-000007-rank_k"
+    },
+    {
+      "caught": true,
+      "class": "hidden_label",
+      "description": "painted over the category box 'Biomass'",
+      "failed_checks": [
+        "7_redraw",
+        "4_ocr"
+      ],
+      "package": "bar-energy-000007-rank_k"
+    },
+    {
+      "caught": true,
+      "class": "forced_tie",
+      "description": "Nuclear raised from 53,411 to 87,539, equal to Geothermal",
+      "failed_checks": [
+        "1_schema",
+        "3_ambiguity",
+        "6_counterfactual"
+      ],
+      "package": "bar-energy-000007-rank_k"
+    },
+    {
+      "caught": true,
+      "class": "mismatched_bar",
+      "description": "painted over the shortest bar (15 px), leaving 6 bars for 7 categories",
+      "failed_checks": [
+        "7_redraw",
+        "5_pixels"
+      ],
+      "package": "bar-energy-000007-rank_k"
+    },
+    {
+      "caught": true,
+      "class": "wrong_answer",
+      "description": "answer '48,756' changed to '13,316'",
+      "failed_checks": [
+        "1_schema",
+        "5_pixels"
+      ],
+      "package": "bar-energy-000014-value_lookup"
+    },
+    {
+      "caught": true,
+      "class": "hidden_label",
+      "description": "painted over the value box '48,756'",
+      "failed_checks": [
+        "7_redraw",
+        "4_ocr"
+      ],
+      "package": "bar-energy-000014-value_lookup"
+    },
+    {
+      "caught": true,
+      "class": "forced_tie",
+      "description": "Hydro raised from 48,756 to 76,617, equal to Gas",
+      "failed_checks": [
+        "1_schema",
+        "3_ambiguity",
+        "6_counterfactual"
+      ],
+      "package": "bar-energy-000014-value_lookup"
+    },
+    {
+      "caught": true,
+      "class": "mismatched_bar",
+      "description": "painted over the shortest bar (53 px), leaving 3 bars for 4 categories",
+      "failed_checks": [
+        "7_redraw",
+        "5_pixels"
+      ],
+      "package": "bar-energy-000014-value_lookup"
+    },
+    {
+      "caught": true,
+      "class": "absent_entity",
+      "description": "question 'What value is shown for Hydro?' now names 'Atlantis', which is not a category of the spec",
+      "failed_checks": [
+        "1_schema",
+        "7_redraw"
+      ],
+      "package": "bar-energy-000014-value_lookup"
+    },
+    {
+      "caught": true,
+      "class": "wrong_answer",
+      "description": "answer 'Coal' changed to 'Gas'",
+      "failed_checks": [
+        "1_schema",
+        "5_pixels",
+        "6_counterfactual"
+      ],
+      "package": "bar-energy-000022-pair_compare"
+    },
+    {
+      "caught": true,
+      "class": "hidden_label",
+      "description": "painted over the category box 'Coal'",
+      "failed_checks": [
+        "7_redraw",
+        "4_ocr"
+      ],
+      "package": "bar-energy-000022-pair_compare"
+    },
+    {
+      "caught": true,
+      "class": "forced_tie",
+      "description": "Wind raised from 72,545 to 86,076, equal to Coal",
+      "failed_checks": [
+        "1_schema",
+        "3_ambiguity",
+        "6_counterfactual"
+      ],
+      "package": "bar-energy-000022-pair_compare"
+    },
+    {
+      "caught": true,
+      "class": "mismatched_bar",
+      "description": "painted over the shortest bar (181 px), leaving 4 bars for 5 categories",
+      "failed_checks": [
+        "7_redraw",
+        "5_pixels"
+      ],
+      "package": "bar-energy-000022-pair_compare"
+    },
+    {
+      "caught": true,
+      "class": "absent_entity",
+      "description": "question 'Which is higher, Gas or Coal?' now names 'Atlantis', which is not a category of the spec",
+      "failed_checks": [
+        "1_schema",
+        "7_redraw",
+        "5_pixels",
+        "6_counterfactual"
+      ],
+      "package": "bar-energy-000022-pair_compare"
+    },
+    {
+      "caught": true,
+      "class": "wrong_answer",
+      "description": "answer '3,597' changed to '80,126'",
+      "failed_checks": [
+        "1_schema",
+        "5_pixels"
+      ],
+      "package": "bar-energy-000029-value_lookup"
+    },
+    {
+      "caught": true,
+      "class": "hidden_label",
+      "description": "painted over the value box '3,597'",
+      "failed_checks": [
+        "7_redraw",
+        "4_ocr"
+      ],
+      "package": "bar-energy-000029-value_lookup"
+    },
+    {
+      "caught": true,
+      "class": "forced_tie",
+      "description": "Hydro raised from 70,164 to 80,126, equal to Biomass",
+      "failed_checks": [
+        "1_schema",
+        "3_ambiguity",
+        "6_counterfactual"
+      ],
+      "package": "bar-energy-000029-value_lookup"
+    },
+    {
+      "caught": true,
+      "class": "mismatched_bar",
+      "description": "painted over the shortest bar (25 px), leaving 4 bars for 5 categories",
+      "failed_checks": [
+        "7_redraw",
+        "4_ocr",
+        "5_pixels"
+      ],
+      "package": "bar-energy-000029-value_lookup"
+    },
+    {
+      "caught": true,
+      "class": "absent_entity",
+      "description": "question 'What value is shown for Wind?' now names 'Atlantis', which is not a category of the spec",
+      "failed_checks": [
+        "1_schema",
+        "7_redraw"
+      ],
+      "package": "bar-energy-000029-value_lookup"
+    },
+    {
+      "caught": true,
+      "class": "wrong_answer",
+      "description": "answer '39,930' changed to '21,759'",
+      "failed_checks": [
+        "1_schema",
+        "5_pixels"
+      ],
+      "package": "bar-energy-000037-value_lookup"
+    },
+    {
+      "caught": true,
+      "class": "hidden_label",
+      "description": "painted over the value box '39,930'",
+      "failed_checks": [
+        "7_redraw",
+        "4_ocr"
+      ],
+      "package": "bar-energy-000037-value_lookup"
+    },
+    {
+      "caught": true,
+      "class": "forced_tie",
+      "description": "Geothermal raised from 66,311 to 77,018, equal to Hydro",
+      "failed_checks": [
+        "1_schema",
+        "3_ambiguity",
+        "6_counterfactual"
+      ],
+      "package": "bar-energy-000037-value_lookup"
+    },
+    {
+      "caught": true,
+      "class": "mismatched_bar",
+      "description": "painted over the shortest bar (148 px), leaving 5 bars for 6 categories",
+      "failed_checks": [
+        "7_redraw",
+        "5_pixels"
+      ],
+      "package": "bar-energy-000037-value_lookup"
+    },
+    {
+      "caught": true,
+      "class": "absent_entity",
+      "description": "question 'What value is shown for Gas?' now names 'Atlantis', which is not a category of the spec",
+      "failed_checks": [
+        "1_schema",
+        "7_redraw"
+      ],
+      "package": "bar-energy-000037-value_lookup"
+    },
+    {
+      "caught": true,
+      "class": "wrong_answer",
+      "description": "answer 'Cocoa' changed to 'Water'",
+      "failed_checks": [
+        "1_schema",
+        "5_pixels"
+      ],
+      "package": "bar-retail-000005-extremum"
+    },
+    {
+      "caught": true,
+      "class": "hidden_label",
+      "description": "painted over the category box 'Cocoa'",
+      "failed_checks": [
+        "7_redraw",
+        "4_ocr"
+      ],
+      "package": "bar-retail-000005-extremum"
+    },
+    {
+      "caught": true,
+      "class": "forced_tie",
+      "description": "Cheese raised from 219,516 to 470,807, equal to Cocoa",
+      "failed_checks": [
+        "1_schema",
+        "3_ambiguity",
+        "5_pixels",
+        "6_counterfactual"
+      ],
+      "package": "bar-retail-000005-extremum"
+    },
+    {
+      "caught": true,
+      "class": "mismatched_bar",
+      "description": "painted over the shortest bar (27 px), leaving 6 bars for 7 categories",
+      "failed_checks": [
+        "7_redraw",
+        "5_pixels"
+      ],
+      "package": "bar-retail-000005-extremum"
+    },
+    {
+      "caught": true,
+      "class": "wrong_answer",
+      "description": "answer 'Cheese' changed to 'Bread'",
+      "failed_checks": [
+        "1_schema",
+        "5_pixels",
+        "6_counterfactual"
+      ],
+      "package": "bar-retail-000012-pair_compare"
+    },
+    {
+      "caught": true,
+      "class": "hidden_label",
+      "description": "painted over the category box 'Cheese'",
+      "failed_checks": [
+        "7_redraw",
+        "4_ocr"
+      ],
+      "package": "bar-retail-000012-pair_compare"
+    },
+    {
+      "caught": true,
+      "class": "forced_tie",
+      "description": "Coffee raised from 350,212 to 462,929, equal to Cheese",
+      "failed_checks": [
+        "1_schema",
+        "3_ambiguity",
+        "6_counterfactual"
+      ],
+      "package": "bar-retail-000012-pair_compare"
+    },
+    {
+      "caught": true,
+      "class": "mismatched_bar",
+      "description": "painted over the shortest bar (29 px), leaving 4 bars for 5 categories",
+      "failed_checks": [
+        "7_redraw",
+        "5_pixels"
+      ],
+      "package": "bar-retail-000012-pair_compare"
+    },
+    {
+      "caught": true,
+      "class": "absent_entity",
+      "description": "question 'Which is higher, Bread or Cheese?' now names 'Atlantis', which is not a category of the spec",
+      "failed_checks": [
+        "1_schema",
+        "7_redraw",
+        "5_pixels",
+        "6_counterfactual"
+      ],
+      "package": "bar-retail-000012-pair_compare"
+    },
+    {
+      "caught": true,
+      "class": "wrong_answer",
+      "description": "answer 'Milk' changed to 'Water'",
+      "failed_checks": [
+        "1_schema",
+        "5_pixels"
+      ],
+      "package": "bar-retail-000020-extremum"
+    },
+    {
+      "caught": true,
+      "class": "hidden_label",
+      "description": "painted over the category box 'Milk'",
+      "failed_checks": [
+        "7_redraw",
+        "4_ocr"
+      ],
+      "package": "bar-retail-000020-extremum"
+    },
+    {
+      "caught": true,
+      "class": "forced_tie",
+      "description": "Tea raised from 265,075 to 360,280, equal to Milk",
+      "failed_checks": [
+        "1_schema",
+        "3_ambiguity",
+        "5_pixels",
+        "6_counterfactual"
+      ],
+      "package": "bar-retail-000020-extremum"
+    },
+    {
+      "caught": true,
+      "class": "mismatched_bar",
+      "description": "painted over the shortest bar (172 px), leaving 3 bars for 4 categories",
+      "failed_checks": [
+        "7_redraw",
+        "5_pixels"
+      ],
+      "package": "bar-retail-000020-extremum"
+    },
+    {
+      "caught": true,
+      "class": "wrong_answer",
+      "description": "answer 'Cheese' changed to 'Cocoa'",
+      "failed_checks": [
+        "1_schema",
+        "5_pixels",
+        "6_counterfactual"
+      ],
+      "package": "bar-retail-000027-pair_compare"
+    },
+    {
+      "caught": true,
+      "class": "hidden_label",
+      "description": "painted over the category box 'Cheese'",
+      "failed_checks": [
+        "7_redraw",
+        "4_ocr"
+      ],
+      "package": "bar-retail-000027-pair_compare"
+    },
+    {
+      "caught": true,
+      "class": "forced_tie",
+      "description": "Milk raised from 315,536 to 342,484, equal to Cheese",
+      "failed_checks": [
+        "1_schema",
+        "3_ambiguity",
+        "6_counterfactual"
+      ],
+      "package": "bar-retail-000027-pair_compare"
+    },
+    {
+      "caught": true,
+      "class": "mismatched_bar",
+      "description": "painted over the shortest bar (242 px), leaving 5 bars for 6 categories",
+      "failed_checks": [
+        "7_redraw",
+        "5_pixels"
+      ],
+      "package": "bar-retail-000027-pair_compare"
+    },
+    {
+      "caught": true,
+      "class": "absent_entity",
+      "description": "question 'Which is higher, Cheese or Cocoa?' now names 'Atlantis', which is not a category of the spec",
+      "failed_checks": [
+        "1_schema",
+        "7_redraw",
+        "5_pixels",
+        "6_counterfactual"
+      ],
+      "package": "bar-retail-000027-pair_compare"
+    },
+    {
+      "caught": true,
+      "class": "wrong_answer",
+      "description": "answer 'Juice' changed to 'Coffee'",
+      "failed_checks": [
+        "1_schema",
+        "5_pixels",
+        "6_counterfactual"
+      ],
+      "package": "bar-retail-000035-pair_compare"
+    },
+    {
+      "caught": true,
+      "class": "hidden_label",
+      "description": "painted over the category box 'Juice'",
+      "failed_checks": [
+        "7_redraw",
+        "4_ocr"
+      ],
+      "package": "bar-retail-000035-pair_compare"
+    },
+    {
+      "caught": true,
+      "class": "forced_tie",
+      "description": "Cocoa raised from 319,444 to 360,161, equal to Juice",
+      "failed_checks": [
+        "1_schema",
+        "3_ambiguity",
+        "6_counterfactual"
+      ],
+      "package": "bar-retail-000035-pair_compare"
+    },
+    {
+      "caught": true,
+      "class": "mismatched_bar",
+      "description": "painted over the shortest bar (251 px), leaving 3 bars for 4 categories",
+      "failed_checks": [
+        "7_redraw",
+        "5_pixels"
+      ],
+      "package": "bar-retail-000035-pair_compare"
+    },
+    {
+      "caught": true,
+      "class": "absent_entity",
+      "description": "question 'Which is higher, Juice or Coffee?' now names 'Atlantis', which is not a category of the spec",
+      "failed_checks": [
+        "1_schema",
+        "7_redraw",
+        "5_pixels",
+        "6_counterfactual"
+      ],
+      "package": "bar-retail-000035-pair_compare"
+    },
+    {
+      "caught": true,
+      "class": "wrong_answer",
+      "description": "answer 'Spain' changed to 'Japan'",
+      "failed_checks": [
+        "1_schema",
+        "5_pixels",
+        "6_counterfactual"
+      ],
+      "package": "bar-tourism-000003-pair_compare"
+    },
+    {
+      "caught": true,
+      "class": "hidden_label",
+      "description": "painted over the category box 'Spain'",
+      "failed_checks": [
+        "7_redraw",
+        "4_ocr"
+      ],
+      "package": "bar-tourism-000003-pair_compare"
+    },
+    {
+      "caught": true,
+      "class": "forced_tie",
+      "description": "Italy raised from 78,110,943 to 86,552,567, equal to Spain",
+      "failed_checks": [
+        "1_schema",
+        "3_ambiguity",
+        "6_counterfactual"
+      ],
+      "package": "bar-tourism-000003-pair_compare"
+    },
+    {
+      "caught": true,
+      "class": "mismatched_bar",
+      "description": "painted over the shortest bar (62 px), leaving 7 bars for 8 categories",
+      "failed_checks": [
+        "7_redraw",
+        "5_pixels"
+      ],
+      "package": "bar-tourism-000003-pair_compare"
+    },
+    {
+      "caught": true,
+      "class": "absent_entity",
+      "description": "question 'Which is higher, Japan or Spain?' now names 'Atlantis', which is not a category of the spec",
+      "failed_checks": [
+        "1_schema",
+        "7_redraw",
+        "5_pixels",
+        "6_counterfactual"
+      ],
+      "package": "bar-tourism-000003-pair_compare"
+    },
+    {
+      "caught": true,
+      "class": "wrong_answer",
+      "description": "answer 'Mexico' changed to 'Germany'",
+      "failed_checks": [
+        "1_schema",
+        "5_pixels",
+        "6_counterfactual"
+      ],
+      "package": "bar-tourism-000010-rank_k"
+    },
+    {
+      "caught": true,
+      "class": "hidden_label",
+      "description": "painted over the category box 'Mexico'",
+      "failed_checks": [
+        "7_redraw",
+        "4_ocr"
+      ],
+      "package": "bar-tourism-000010-rank_k"
+    },
+    {
+      "caught": true,
+      "class": "forced_tie",
+      "description": "Italy raised from 38,370,768 to 78,340,228, equal to Germany",
+      "failed_checks": [
+        "1_schema",
+        "3_ambiguity",
+        "6_counterfactual"
+      ],
+      "package": "bar-tourism-000010-rank_k"
+    },
+    {
+      "caught": true,
+      "class": "mismatched_bar",
+      "description": "painted over the shortest bar (101 px), leaving 4 bars for 5 categories",
+      "failed_checks": [
+        "7_redraw",
+        "5_pixels"
+      ],
+      "package": "bar-tourism-000010-rank_k"
+    },
+    {
+      "caught": true,
+      "class": "wrong_answer",
+      "description": "answer 'Japan' changed to 'Italy'",
+      "failed_checks": [
+        "1_schema",
+        "5_pixels"
+      ],
+      "package": "bar-tourism-000018-extremum"
+    },
+    {
+      "caught": true,
+      "class": "hidden_label",
+      "description": "painted over the category box 'Japan'",
+      "failed_checks": [
+        "7_redraw",
+        "4_ocr"
+      ],
+      "package": "bar-tourism-000018-extremum"
+    },
+    {
+      "caught": true,
+      "class": "forced_tie",
+      "description": "Thailand raised from 46,818,544 to 51,999,123, equal to Japan",
+      "failed_checks": [
+        "1_schema",
+        "3_ambiguity",
+        "5_pixels",
+        "6_counterfactual"
+      ],
+      "package": "bar-tourism-000018-extremum"
+    },
+    {
+      "caught": true,
+      "class": "mismatched_bar",
+      "description": "painted over the shortest bar (337 px), leaving 3 bars for 4 categories",
+      "failed_checks": [
+        "7_redraw",
+        "5_pixels"
+      ],
+      "package": "bar-tourism-000018-extremum"
+    },
+    {
+      "caught": true,
+      "class": "wrong_answer",
+      "description": "answer '79.3M' changed to '36.9M'",
+      "failed_checks": [
+        "1_schema",
+        "5_pixels"
+      ],
+      "package": "bar-tourism-000025-value_lookup"
+    },
+    {
+      "caught": true,
+      "class": "hidden_label",
+      "description": "painted over the value box '79.3M'",
+      "failed_checks": [
+        "7_redraw",
+        "4_ocr"
+      ],
+      "package": "bar-tourism-000025-value_lookup"
+    },
+    {
+      "caught": true,
+      "class": "forced_tie",
+      "description": "Mexico raised from 47,262,981 to 79,325,105, equal to Spain",
+      "failed_checks": [
+        "1_schema",
+        "3_ambiguity",
+        "6_counterfactual"
+      ],
+      "package": "bar-tourism-000025-value_lookup"
+    },
+    {
+      "caught": true,
+      "class": "mismatched_bar",
+      "description": "painted over the shortest bar (101 px), leaving 7 bars for 8 categories",
+      "failed_checks": [
+        "7_redraw",
+        "5_pixels"
+      ],
+      "package": "bar-tourism-000025-value_lookup"
+    },
+    {
+      "caught": true,
+      "class": "absent_entity",
+      "description": "question 'What value is shown for Spain?' now names 'Atlantis', which is not a category of the spec",
+      "failed_checks": [
+        "1_schema",
+        "7_redraw"
+      ],
+      "package": "bar-tourism-000025-value_lookup"
+    },
+    {
+      "caught": true,
+      "class": "wrong_answer",
+      "description": "answer 'Turkey' changed to 'Spain'",
+      "failed_checks": [
+        "1_schema",
+        "5_pixels"
+      ],
+      "package": "bar-tourism-000033-extremum"
+    },
+    {
+      "caught": true,
+      "class": "hidden_label",
+      "description": "painted over the category box 'Turkey'",
+      "failed_checks": [
+        "7_redraw",
+        "4_ocr"
+      ],
+      "package": "bar-tourism-000033-extremum"
+    },
+    {
+      "caught": true,
+      "class": "forced_tie",
+      "description": "Italy raised from 74,537,251 to 84,909,541, equal to Turkey",
+      "failed_checks": [
+        "1_schema",
+        "3_ambiguity",
+        "5_pixels",
+        "6_counterfactual"
+      ],
+      "package": "bar-tourism-000033-extremum"
+    },
+    {
+      "caught": true,
+      "class": "mismatched_bar",
+      "description": "painted over the shortest bar (86 px), leaving 4 bars for 5 categories",
+      "failed_checks": [
+        "7_redraw",
+        "5_pixels"
+      ],
+      "package": "bar-tourism-000033-extremum"
+    },
+    {
+      "caught": true,
+      "class": "wrong_answer",
+      "description": "answer 'Gas' changed to 'Biomass'",
+      "failed_checks": [
+        "3_line_ambiguity",
+        "5_line_pixels"
+      ],
+      "package": "line-energy-000001-series_at_x"
+    },
+    {
+      "caught": true,
+      "class": "hidden_label",
+      "description": "painted over the legend box 'Gas'",
+      "failed_checks": [
+        "4_ocr",
+        "7_line_redraw"
+      ],
+      "package": "line-energy-000001-series_at_x"
+    },
+    {
+      "caught": true,
+      "class": "wrong_answer",
+      "description": "answer 'Geothermal' changed to 'Nuclear'",
+      "failed_checks": [
+        "3_line_ambiguity",
+        "5_line_pixels"
+      ],
+      "package": "line-energy-000030-series_at_x"
+    },
+    {
+      "caught": true,
+      "class": "hidden_label",
+      "description": "painted over the legend box 'Geothermal'",
+      "failed_checks": [
+        "4_ocr",
+        "7_line_redraw"
+      ],
+      "package": "line-energy-000030-series_at_x"
+    },
+    {
+      "caught": true,
+      "class": "wrong_answer",
+      "description": "answer 'Cocoa' changed to 'Juice'",
+      "failed_checks": [
+        "3_line_ambiguity",
+        "5_line_pixels"
+      ],
+      "package": "line-retail-000018-series_at_x"
+    },
+    {
+      "caught": true,
+      "class": "hidden_label",
+      "description": "painted over the legend box 'Cocoa'",
+      "failed_checks": [
+        "4_ocr",
+        "7_line_redraw"
+      ],
+      "package": "line-retail-000018-series_at_x"
+    },
+    {
+      "caught": true,
+      "class": "wrong_answer",
+      "description": "answer 'Spain' changed to 'Japan'",
+      "failed_checks": [
+        "3_line_ambiguity",
+        "5_line_pixels"
+      ],
+      "package": "line-tourism-000007-series_at_x"
+    },
+    {
+      "caught": true,
+      "class": "hidden_label",
+      "description": "painted over the legend box 'Spain'",
+      "failed_checks": [
+        "4_ocr",
+        "7_line_redraw"
+      ],
+      "package": "line-tourism-000007-series_at_x"
+    }
+  ],
+  "per_class": {
+    "absent_entity": {
+      "catch_rate": 1.0,
+      "caught": 9,
+      "injected": 9
+    },
+    "forced_tie": {
+      "catch_rate": 1.0,
+      "caught": 16,
+      "injected": 16
+    },
+    "hidden_label": {
+      "catch_rate": 1.0,
+      "caught": 20,
+      "injected": 20
+    },
+    "mismatched_bar": {
+      "catch_rate": 1.0,
+      "caught": 16,
+      "injected": 16
+    },
+    "wrong_answer": {
+      "catch_rate": 1.0,
+      "caught": 20,
+      "injected": 20
+    }
+  },
+  "selection": {
+    "packages": [
+      "bar-energy-000000-extremum",
+      "bar-energy-000007-rank_k",
+      "bar-energy-000014-value_lookup",
+      "bar-energy-000022-pair_compare",
+      "bar-energy-000029-value_lookup",
+      "bar-energy-000037-value_lookup",
+      "bar-retail-000005-extremum",
+      "bar-retail-000012-pair_compare",
+      "bar-retail-000020-extremum",
+      "bar-retail-000027-pair_compare",
+      "bar-retail-000035-pair_compare",
+      "bar-tourism-000003-pair_compare",
+      "bar-tourism-000010-rank_k",
+      "bar-tourism-000018-extremum",
+      "bar-tourism-000025-value_lookup",
+      "bar-tourism-000033-extremum",
+      "line-energy-000001-series_at_x",
+      "line-energy-000030-series_at_x",
+      "line-retail-000018-series_at_x",
+      "line-tourism-000007-series_at_x"
+    ],
+    "pool_packages": 564,
+    "positions": [
+      0,
+      28,
+      56,
+      84,
+      112,
+      141,
+      169,
+      197,
+      225,
+      253,
+      282,
+      310,
+      338,
+      366,
+      394,
+      423,
+      451,
+      479,
+      507,
+      535
+    ],
+    "rule": "20 packages at positions i*564//20 (i = 0 to 19) of the name-sorted list of pool tasks",
+    "sample_size": 20
+  }
+}

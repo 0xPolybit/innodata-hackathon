@@ -1,0 +1,125 @@
+{
+  "checks": [
+    {
+      "check": "1_schema",
+      "details": {
+        "failed_rules": [],
+        "failures": [],
+        "spec_error": null,
+        "spec_valid": true,
+        "task_is_object": true,
+        "task_type": "series_at_x"
+      },
+      "passed": true
+    },
+    {
+      "check": "2_layout",
+      "details": {
+        "box_count": 15,
+        "canvas": [
+          1200.0,
+          800.0
+        ],
+        "malformed_boxes": [],
+        "min_font_px": 9,
+        "outside_canvas": [],
+        "overlapping_pairs": [],
+        "small_font_boxes": []
+      },
+      "passed": true
+    },
+    {
+      "check": "3_line_ambiguity",
+      "details": {
+        "answer": "France",
+        "failed_rules": [],
+        "largest": 72661926,
+        "margin": 0.6546836096802608,
+        "min_margin": 0.05,
+        "reasons": [],
+        "second_largest": 25091354,
+        "top_series": "France",
+        "values_at_year": {
+          "France": 72661926,
+          "Japan": 25091354
+        },
+        "year": "2016"
+      },
+      "passed": true
+    },
+    {
+      "check": "4_ocr",
+      "details": {
+        "caption_masked": true,
+        "found": {
+          "france": true
+        },
+        "found_via": {
+          "france": "full"
+        },
+        "ocr_text": "international tourist arrivals (2017) \u2014e\u2014 japan \u2014e\u2014 france \u201c\u00b0 bad bs tag a wr bt wr synthetic data",
+        "required": [
+          "france"
+        ],
+        "tesseract_version": "5.4.0.20240606"
+      },
+      "passed": true
+    },
+    {
+      "check": "5_line_pixels",
+      "details": {
+        "colours": {
+          "France": [
+            221,
+            132,
+            82
+          ],
+          "Japan": [
+            76,
+            114,
+            176
+          ]
+        },
+        "expected_answer": "France",
+        "gap_fraction": 0.5359562841530054,
+        "pixel_answer": "France",
+        "reasons": [],
+        "x_source": "anchor",
+        "y_positions": {
+          "France": 280.067,
+          "Japan": 607.0
+        },
+        "year": "2016",
+        "year_column": 96
+      },
+      "passed": true
+    },
+    {
+      "check": "6_line_counterfactual",
+      "details": {
+        "altered_answer": "Japan",
+        "altered_value": 25091354,
+        "changed": true,
+        "original_answer": "France",
+        "pixel_answer_after_redraw": "Japan",
+        "reader_passed": true,
+        "reasons": [],
+        "year": "2016"
+      },
+      "passed": true
+    },
+    {
+      "check": "7_line_redraw",
+      "details": {
+        "hashes_match": true,
+        "image_sha256": "b42011e3fed8602a2f6e661f0ec05c7f27f9cbf075f017b021cbf11360b4ef64",
+        "question_in_image": true,
+        "reasons": [],
+        "redraw_sha256": "b42011e3fed8602a2f6e661f0ec05c7f27f9cbf075f017b021cbf11360b4ef64"
+      },
+      "passed": true
+    }
+  ],
+  "package_id": "line-tourism-000004-series_at_x",
+  "passed": true
+}

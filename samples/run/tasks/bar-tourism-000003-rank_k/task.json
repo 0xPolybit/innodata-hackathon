@@ -1,0 +1,13 @@
+{
+  "answer": "Mexico",
+  "answer_category": "Mexico",
+  "answer_printed_in_image": true,
+  "answer_value": 6683830,
+  "domain": "tourism",
+  "family": "bar",
+  "question": "Which category ranks fourth by value?",
+  "question_in_image": true,
+  "reasoning_steps": 5,
+  "spec_index": 3,
+  "task_type": "rank_k"
+}

@@ -1,0 +1,132 @@
+{
+  "checks": [
+    {
+      "check": "1_schema",
+      "details": {
+        "failed_rules": [],
+        "failures": [],
+        "spec_error": null,
+        "spec_valid": true,
+        "task_is_object": true,
+        "task_type": "series_at_x"
+      },
+      "passed": true
+    },
+    {
+      "check": "2_layout",
+      "details": {
+        "box_count": 15,
+        "canvas": [
+          1200.0,
+          800.0
+        ],
+        "malformed_boxes": [],
+        "min_font_px": 9,
+        "outside_canvas": [],
+        "overlapping_pairs": [],
+        "small_font_boxes": []
+      },
+      "passed": true
+    },
+    {
+      "check": "3_line_ambiguity",
+      "details": {
+        "answer": "Japan",
+        "failed_rules": [],
+        "largest": 82989909,
+        "margin": 0.10491643026141889,
+        "min_margin": 0.05,
+        "reasons": [],
+        "second_largest": 74282904,
+        "top_series": "Japan",
+        "values_at_year": {
+          "Italy": 64237332,
+          "Japan": 82989909,
+          "Spain": 74282904
+        },
+        "year": "2024"
+      },
+      "passed": true
+    },
+    {
+      "check": "4_ocr",
+      "details": {
+        "caption_masked": true,
+        "found": {
+          "japan": true
+        },
+        "found_via": {
+          "japan": "full"
+        },
+        "ocr_text": "international tourist arrivals (2019) \u2014e\u2014 japan \u2014e spain \u2014e italy ew oo we we tag stag bad we we synthetic data",
+        "required": [
+          "japan"
+        ],
+        "tesseract_version": "5.4.0.20240606"
+      },
+      "passed": true
+    },
+    {
+      "check": "5_line_pixels",
+      "details": {
+        "colours": {
+          "Italy": [
+            85,
+            168,
+            104
+          ],
+          "Japan": [
+            76,
+            114,
+            176
+          ],
+          "Spain": [
+            221,
+            132,
+            82
+          ]
+        },
+        "expected_answer": "Japan",
+        "gap_fraction": 0.07745395668892936,
+        "pixel_answer": "Japan",
+        "reasons": [],
+        "x_source": "anchor",
+        "y_positions": {
+          "Italy": 291.0,
+          "Japan": 187.753,
+          "Spain": 235.0
+        },
+        "year": "2024",
+        "year_column": 973
+      },
+      "passed": true
+    },
+    {
+      "check": "6_line_counterfactual",
+      "details": {
+        "altered_answer": "Spain",
+        "altered_value": 74282904,
+        "changed": true,
+        "original_answer": "Japan",
+        "pixel_answer_after_redraw": "Spain",
+        "reader_passed": true,
+        "reasons": [],
+        "year": "2024"
+      },
+      "passed": true
+    },
+    {
+      "check": "7_line_redraw",
+      "details": {
+        "hashes_match": true,
+        "image_sha256": "854e5921e471cf64efa1ec63f3e3442d56d396b8c3df3dfd06fbbac23074ec42",
+        "question_in_image": true,
+        "reasons": [],
+        "redraw_sha256": "854e5921e471cf64efa1ec63f3e3442d56d396b8c3df3dfd06fbbac23074ec42"
+      },
+      "passed": true
+    }
+  ],
+  "package_id": "line-tourism-000000-series_at_x",
+  "passed": true
+}

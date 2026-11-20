@@ -1,0 +1,145 @@
+[
+  {
+    "bbox": [
+      40,
+      26,
+      590,
+      58
+    ],
+    "font_px": 31,
+    "role": "title",
+    "text": "International tourist arrivals (2016)"
+  },
+  {
+    "bbox": [
+      42,
+      139,
+      106,
+      159
+    ],
+    "font_px": 19,
+    "role": "category",
+    "text": "France"
+  },
+  {
+    "bbox": [
+      51,
+      266,
+      106,
+      286
+    ],
+    "font_px": 19,
+    "role": "category",
+    "text": "Japan"
+  },
+  {
+    "bbox": [
+      43,
+      393,
+      106,
+      413
+    ],
+    "font_px": 19,
+    "role": "category",
+    "text": "Turkey"
+  },
+  {
+    "bbox": [
+      40,
+      520,
+      106,
+      540
+    ],
+    "font_px": 19,
+    "role": "category",
+    "text": "Mexico"
+  },
+  {
+    "bbox": [
+      52,
+      647,
+      106,
+      667
+    ],
+    "font_px": 19,
+    "role": "category",
+    "text": "Spain"
+  },
+  {
+    "bbox": [
+      887,
+      139,
+      946,
+      159
+    ],
+    "font_px": 19,
+    "role": "value",
+    "text": "51.2M"
+  },
+  {
+    "bbox": [
+      938,
+      266,
+      997,
+      286
+    ],
+    "font_px": 19,
+    "role": "value",
+    "text": "54.6M"
+  },
+  {
+    "bbox": [
+      180,
+      393,
+      227,
+      413
+    ],
+    "font_px": 19,
+    "role": "value",
+    "text": "3.8M"
+  },
+  {
+    "bbox": [
+      222,
+      520,
+      269,
+      540
+    ],
+    "font_px": 19,
+    "role": "value",
+    "text": "6.7M"
+  },
+  {
+    "bbox": [
+      1100,
+      647,
+      1158,
+      667
+    ],
+    "font_px": 19,
+    "role": "value",
+    "text": "65.4M"
+  },
+  {
+    "bbox": [
+      40,
+      763,
+      142,
+      778
+    ],
+    "font_px": 14,
+    "role": "footer",
+    "text": "Synthetic data"
+  },
+  {
+    "bbox": [
+      40,
+      734,
+      356,
+      754
+    ],
+    "font_px": 19,
+    "role": "caption",
+    "text": "Which is higher, Turkey or Spain?"
+  }
+]

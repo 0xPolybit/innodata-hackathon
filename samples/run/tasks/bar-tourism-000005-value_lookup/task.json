@@ -1,0 +1,13 @@
+{
+  "answer": "66.6M",
+  "answer_category": "France",
+  "answer_printed_in_image": true,
+  "answer_value": 66551819,
+  "domain": "tourism",
+  "family": "bar",
+  "question": "What value is shown for France?",
+  "question_in_image": true,
+  "reasoning_steps": 1,
+  "spec_index": 5,
+  "task_type": "value_lookup"
+}

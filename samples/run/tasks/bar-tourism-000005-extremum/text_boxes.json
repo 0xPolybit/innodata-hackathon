@@ -1,0 +1,167 @@
+[
+  {
+    "bbox": [
+      40,
+      26,
+      590,
+      58
+    ],
+    "font_px": 31,
+    "role": "title",
+    "text": "International tourist arrivals (2023)"
+  },
+  {
+    "bbox": [
+      106,
+      700,
+      161,
+      721
+    ],
+    "font_px": 19,
+    "role": "category",
+    "text": "Japan"
+  },
+  {
+    "bbox": [
+      288,
+      700,
+      352,
+      721
+    ],
+    "font_px": 19,
+    "role": "category",
+    "text": "France"
+  },
+  {
+    "bbox": [
+      475,
+      700,
+      538,
+      721
+    ],
+    "font_px": 19,
+    "role": "category",
+    "text": "Turkey"
+  },
+  {
+    "bbox": [
+      666,
+      700,
+      720,
+      721
+    ],
+    "font_px": 19,
+    "role": "category",
+    "text": "Spain"
+  },
+  {
+    "bbox": [
+      859,
+      700,
+      901,
+      721
+    ],
+    "font_px": 19,
+    "role": "category",
+    "text": "Italy"
+  },
+  {
+    "bbox": [
+      1025,
+      700,
+      1108,
+      721
+    ],
+    "font_px": 19,
+    "role": "category",
+    "text": "Thailand"
+  },
+  {
+    "bbox": [
+      104,
+      521,
+      163,
+      542
+    ],
+    "font_px": 19,
+    "role": "value",
+    "text": "21.3M"
+  },
+  {
+    "bbox": [
+      290,
+      212,
+      349,
+      232
+    ],
+    "font_px": 19,
+    "role": "value",
+    "text": "66.6M"
+  },
+  {
+    "bbox": [
+      477,
+      402,
+      536,
+      423
+    ],
+    "font_px": 19,
+    "role": "value",
+    "text": "38.7M"
+  },
+  {
+    "bbox": [
+      670,
+      612,
+      717,
+      632
+    ],
+    "font_px": 19,
+    "role": "value",
+    "text": "8.1M"
+  },
+  {
+    "bbox": [
+      851,
+      87,
+      909,
+      107
+    ],
+    "font_px": 19,
+    "role": "value",
+    "text": "84.8M"
+  },
+  {
+    "bbox": [
+      1037,
+      439,
+      1096,
+      460
+    ],
+    "font_px": 19,
+    "role": "value",
+    "text": "33.3M"
+  },
+  {
+    "bbox": [
+      40,
+      763,
+      142,
+      778
+    ],
+    "font_px": 14,
+    "role": "footer",
+    "text": "Synthetic data"
+  },
+  {
+    "bbox": [
+      40,
+      734,
+      409,
+      754
+    ],
+    "font_px": 19,
+    "role": "caption",
+    "text": "Which category has the highest value?"
+  }
+]

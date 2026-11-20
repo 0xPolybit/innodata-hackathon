@@ -1,0 +1,207 @@
+[
+  {
+    "bbox": [
+      40,
+      26,
+      590,
+      58
+    ],
+    "font_px": 31,
+    "role": "title",
+    "text": "International tourist arrivals (2017)"
+  },
+  {
+    "bbox": [
+      521,
+      98,
+      576,
+      118
+    ],
+    "font_px": 19,
+    "role": "legend",
+    "text": "Japan"
+  },
+  {
+    "bbox": [
+      669,
+      98,
+      733,
+      118
+    ],
+    "font_px": 19,
+    "role": "legend",
+    "text": "France"
+  },
+  {
+    "anchor": [
+      96,
+      671
+    ],
+    "bbox": [
+      54,
+      679,
+      106,
+      721
+    ],
+    "font_px": 19,
+    "role": "category",
+    "text": "2016"
+  },
+  {
+    "anchor": [
+      208,
+      671
+    ],
+    "bbox": [
+      166,
+      679,
+      218,
+      721
+    ],
+    "font_px": 19,
+    "role": "category",
+    "text": "2017"
+  },
+  {
+    "anchor": [
+      320,
+      671
+    ],
+    "bbox": [
+      278,
+      679,
+      330,
+      721
+    ],
+    "font_px": 19,
+    "role": "category",
+    "text": "2018"
+  },
+  {
+    "anchor": [
+      432,
+      671
+    ],
+    "bbox": [
+      390,
+      679,
+      442,
+      721
+    ],
+    "font_px": 19,
+    "role": "category",
+    "text": "2019"
+  },
+  {
+    "anchor": [
+      544,
+      671
+    ],
+    "bbox": [
+      502,
+      679,
+      554,
+      721
+    ],
+    "font_px": 19,
+    "role": "category",
+    "text": "2020"
+  },
+  {
+    "anchor": [
+      656,
+      671
+    ],
+    "bbox": [
+      614,
+      679,
+      666,
+      721
+    ],
+    "font_px": 19,
+    "role": "category",
+    "text": "2021"
+  },
+  {
+    "anchor": [
+      768,
+      671
+    ],
+    "bbox": [
+      726,
+      679,
+      778,
+      721
+    ],
+    "font_px": 19,
+    "role": "category",
+    "text": "2022"
+  },
+  {
+    "anchor": [
+      880,
+      671
+    ],
+    "bbox": [
+      838,
+      679,
+      890,
+      721
+    ],
+    "font_px": 19,
+    "role": "category",
+    "text": "2023"
+  },
+  {
+    "anchor": [
+      992,
+      671
+    ],
+    "bbox": [
+      950,
+      679,
+      1002,
+      721
+    ],
+    "font_px": 19,
+    "role": "category",
+    "text": "2024"
+  },
+  {
+    "anchor": [
+      1104,
+      671
+    ],
+    "bbox": [
+      1062,
+      679,
+      1114,
+      721
+    ],
+    "font_px": 19,
+    "role": "category",
+    "text": "2025"
+  },
+  {
+    "bbox": [
+      40,
+      763,
+      142,
+      778
+    ],
+    "font_px": 14,
+    "role": "footer",
+    "text": "Synthetic data"
+  },
+  {
+    "bbox": [
+      40,
+      734,
+      345,
+      754
+    ],
+    "font_px": 19,
+    "role": "caption",
+    "text": "Which series is highest in 2016?"
+  }
+]

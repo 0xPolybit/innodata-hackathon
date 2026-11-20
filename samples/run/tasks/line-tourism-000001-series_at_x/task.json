@@ -1,0 +1,14 @@
+{
+  "answer": "Thailand",
+  "answer_category": "Thailand",
+  "answer_printed_in_image": true,
+  "answer_value": 53243083,
+  "domain": "tourism",
+  "family": "line",
+  "question": "Which series is highest in 2021?",
+  "question_in_image": true,
+  "reasoning_steps": 3,
+  "spec_index": 1,
+  "task_type": "series_at_x",
+  "year": "2021"
+}

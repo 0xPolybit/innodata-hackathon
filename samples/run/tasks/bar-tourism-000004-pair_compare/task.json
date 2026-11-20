@@ -1,0 +1,13 @@
+{
+  "answer": "Thailand",
+  "answer_category": "Thailand",
+  "answer_printed_in_image": true,
+  "answer_value": 42473309,
+  "domain": "tourism",
+  "family": "bar",
+  "question": "Which is higher, Thailand or Germany?",
+  "question_in_image": true,
+  "reasoning_steps": 2,
+  "spec_index": 4,
+  "task_type": "pair_compare"
+}

@@ -1,0 +1,29 @@
+{
+  "config_hash": "761201870e06b942e498359c98dc02416fe0ccde38888a33da14d2f7651e80c6",
+  "files": {
+    "image.png": {
+      "bytes": 27380,
+      "sha256": "5c70007a57664c5b5903073c074460d4dbfefff459f0bc0bccebe9c3b3497172"
+    },
+    "spec.json": {
+      "bytes": 553,
+      "sha256": "13634faa44f9ab5a8ae7f2281556c70ed469db1a632a772f1cf41992b2184a70"
+    },
+    "task.json": {
+      "bytes": 314,
+      "sha256": "5ff0d5985681116ddec6f0daaee3a1eb40d740b1127054f906155215a5d8115b"
+    },
+    "text_boxes.json": {
+      "bytes": 1550,
+      "sha256": "db672d01130552f6abf3920b6f620dd1e65cc6566fc4e7e394524f134558b38a"
+    }
+  },
+  "git_sha": "ab939cb14db8b9346b5742033ed63e277818f333",
+  "package_id": "bar-tourism-000000-extremum",
+  "versions": {
+    "matplotlib": "3.11.2",
+    "numpy": "2.5.5",
+    "pillow": "13.0.0",
+    "python": "3.14.6"
+  }
+}

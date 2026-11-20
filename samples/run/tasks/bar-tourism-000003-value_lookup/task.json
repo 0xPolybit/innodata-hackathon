@@ -1,0 +1,13 @@
+{
+  "answer": "6.7M",
+  "answer_category": "Mexico",
+  "answer_printed_in_image": true,
+  "answer_value": 6683830,
+  "domain": "tourism",
+  "family": "bar",
+  "question": "What value is shown for Mexico?",
+  "question_in_image": true,
+  "reasoning_steps": 1,
+  "spec_index": 3,
+  "task_type": "value_lookup"
+}

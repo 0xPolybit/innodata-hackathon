@@ -1,0 +1,132 @@
+{
+  "checks": [
+    {
+      "check": "1_schema",
+      "details": {
+        "failed_rules": [],
+        "failures": [],
+        "spec_error": null,
+        "spec_valid": true,
+        "task_is_object": true,
+        "task_type": "series_at_x"
+      },
+      "passed": true
+    },
+    {
+      "check": "2_layout",
+      "details": {
+        "box_count": 15,
+        "canvas": [
+          1200.0,
+          800.0
+        ],
+        "malformed_boxes": [],
+        "min_font_px": 9,
+        "outside_canvas": [],
+        "overlapping_pairs": [],
+        "small_font_boxes": []
+      },
+      "passed": true
+    },
+    {
+      "check": "3_line_ambiguity",
+      "details": {
+        "answer": "Italy",
+        "failed_rules": [],
+        "largest": 75703533,
+        "margin": 0.4335711254057324,
+        "min_margin": 0.05,
+        "reasons": [],
+        "second_largest": 42880667,
+        "top_series": "Italy",
+        "values_at_year": {
+          "Germany": 42880667,
+          "Italy": 75703533,
+          "Mexico": 2914808
+        },
+        "year": "2020"
+      },
+      "passed": true
+    },
+    {
+      "check": "4_ocr",
+      "details": {
+        "caption_masked": true,
+        "found": {
+          "italy": true
+        },
+        "found_via": {
+          "italy": "full"
+        },
+        "ocr_text": "international tourist arrivals (2019) \u2014e\u2014 germany \u2014e mexico \u2014e italy ew oo we we tag stag bad we we synthetic data",
+        "required": [
+          "italy"
+        ],
+        "tesseract_version": "5.4.0.20240606"
+      },
+      "passed": true
+    },
+    {
+      "check": "5_line_pixels",
+      "details": {
+        "colours": {
+          "Germany": [
+            76,
+            114,
+            176
+          ],
+          "Italy": [
+            85,
+            168,
+            104
+          ],
+          "Mexico": [
+            221,
+            132,
+            82
+          ]
+        },
+        "expected_answer": "Italy",
+        "gap_fraction": 0.28654371584699456,
+        "pixel_answer": "Italy",
+        "reasons": [],
+        "x_source": "anchor",
+        "y_positions": {
+          "Germany": 419.792,
+          "Italy": 245.0,
+          "Mexico": 631.434
+        },
+        "year": "2020",
+        "year_column": 476
+      },
+      "passed": true
+    },
+    {
+      "check": "6_line_counterfactual",
+      "details": {
+        "altered_answer": "Germany",
+        "altered_value": 42880667,
+        "changed": true,
+        "original_answer": "Italy",
+        "pixel_answer_after_redraw": "Germany",
+        "reader_passed": true,
+        "reasons": [],
+        "year": "2020"
+      },
+      "passed": true
+    },
+    {
+      "check": "7_line_redraw",
+      "details": {
+        "hashes_match": true,
+        "image_sha256": "822b6784cc39d90b0bb8c1f200155e7ec703507583b565db1ddf73cbb2632d30",
+        "question_in_image": true,
+        "reasons": [],
+        "redraw_sha256": "822b6784cc39d90b0bb8c1f200155e7ec703507583b565db1ddf73cbb2632d30"
+      },
+      "passed": true
+    }
+  ],
+  "package_id": "line-tourism-000003-series_at_x",
+  "passed": true
+}

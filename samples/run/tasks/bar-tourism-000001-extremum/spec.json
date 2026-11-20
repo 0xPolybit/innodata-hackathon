@@ -1,0 +1,43 @@
+{
+  "domain": "tourism",
+  "family": "bar",
+  "index": 1,
+  "orientation": "vertical",
+  "question_in_image": true,
+  "seed": 2252757141,
+  "series": [
+    {
+      "labels": [
+        "78.5M",
+        "11.5M",
+        "68.9M",
+        "20.5M",
+        "69.1M",
+        "18.5M",
+        "40.1M"
+      ],
+      "name": "",
+      "values": [
+        78501361,
+        11515784,
+        68944356,
+        20548966,
+        69102404,
+        18470913,
+        40050694
+      ]
+    }
+  ],
+  "spec_version": 1,
+  "title": "International tourist arrivals (2018)",
+  "x_label_rotation": 0,
+  "x_labels": [
+    "Spain",
+    "Italy",
+    "Thailand",
+    "Germany",
+    "Japan",
+    "France",
+    "Turkey"
+  ]
+}

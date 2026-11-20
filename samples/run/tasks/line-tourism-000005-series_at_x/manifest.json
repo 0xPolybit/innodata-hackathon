@@ -1,0 +1,29 @@
+{
+  "config_hash": "761201870e06b942e498359c98dc02416fe0ccde38888a33da14d2f7651e80c6",
+  "files": {
+    "image.png": {
+      "bytes": 97119,
+      "sha256": "8ded1b29381d6c83d8fe8734d894c3a3e48bf68253b2b22109c761a60b88b860"
+    },
+    "spec.json": {
+      "bytes": 1468,
+      "sha256": "e42997859cc087ee8c22628e840b997a0cab06c8d9cfe1da141a11107d90ca2f"
+    },
+    "task.json": {
+      "bytes": 329,
+      "sha256": "97817b5978c111e94e9c4aa5074f3927f9ebeae2518631eb5b7ffa3ed2f4016f"
+    },
+    "text_boxes.json": {
+      "bytes": 2302,
+      "sha256": "e1c303f9a0ee03bdb77f6e59562df9a129d39292d73273973530817c841e1cc3"
+    }
+  },
+  "git_sha": "ab939cb14db8b9346b5742033ed63e277818f333",
+  "package_id": "line-tourism-000005-series_at_x",
+  "versions": {
+    "matplotlib": "3.11.2",
+    "numpy": "2.5.5",
+    "pillow": "13.0.0",
+    "python": "3.14.6"
+  }
+}

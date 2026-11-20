@@ -1,0 +1,13 @@
+{
+  "answer": "35.7M",
+  "answer_category": "Germany",
+  "answer_printed_in_image": true,
+  "answer_value": 35694216,
+  "domain": "tourism",
+  "family": "bar",
+  "question": "What value is shown for Germany?",
+  "question_in_image": true,
+  "reasoning_steps": 1,
+  "spec_index": 2,
+  "task_type": "value_lookup"
+}

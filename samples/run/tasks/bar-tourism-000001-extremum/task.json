@@ -1,0 +1,13 @@
+{
+  "answer": "Spain",
+  "answer_category": "Spain",
+  "answer_printed_in_image": true,
+  "answer_value": 78501361,
+  "domain": "tourism",
+  "family": "bar",
+  "question": "Which category has the highest value?",
+  "question_in_image": true,
+  "reasoning_steps": 7,
+  "spec_index": 1,
+  "task_type": "extremum"
+}

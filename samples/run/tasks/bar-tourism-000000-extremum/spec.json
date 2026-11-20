@@ -1,0 +1,34 @@
+{
+  "domain": "tourism",
+  "family": "bar",
+  "index": 0,
+  "orientation": "horizontal",
+  "question_in_image": true,
+  "seed": 588275223,
+  "series": [
+    {
+      "labels": [
+        "40.6M",
+        "81.1M",
+        "67.6M",
+        "30.8M"
+      ],
+      "name": "",
+      "values": [
+        40616457,
+        81143094,
+        67612874,
+        30777817
+      ]
+    }
+  ],
+  "spec_version": 1,
+  "title": "International tourist arrivals (2022)",
+  "x_label_rotation": 0,
+  "x_labels": [
+    "Spain",
+    "Mexico",
+    "France",
+    "Germany"
+  ]
+}

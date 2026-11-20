@@ -1,0 +1,193 @@
+{
+  "checks": [
+    {
+      "check": "1_schema",
+      "details": {
+        "failed_rules": [],
+        "failures": [],
+        "spec_error": null,
+        "spec_valid": true,
+        "task_is_object": true,
+        "task_type": "value_lookup"
+      },
+      "passed": true
+    },
+    {
+      "check": "2_layout",
+      "details": {
+        "box_count": 13,
+        "canvas": [
+          1200.0,
+          800.0
+        ],
+        "malformed_boxes": [],
+        "min_font_px": 9,
+        "outside_canvas": [],
+        "overlapping_pairs": [],
+        "small_font_boxes": []
+      },
+      "passed": true
+    },
+    {
+      "check": "3_ambiguity",
+      "details": {
+        "duplicate_labels": [],
+        "duplicate_values": [],
+        "failed_rules": [],
+        "labels": [
+          "51.2M",
+          "54.6M",
+          "3.8M",
+          "6.7M",
+          "65.4M"
+        ],
+        "largest": 65430990,
+        "margin": 0.16546011301372637,
+        "min_margin": 0.05,
+        "second_largest": 54604771,
+        "values": [
+          51197900,
+          54604771,
+          3828490,
+          6683830,
+          65430990
+        ]
+      },
+      "passed": true
+    },
+    {
+      "check": "7_redraw",
+      "details": {
+        "caption_matches": true,
+        "caption_present": true,
+        "caption_required": true,
+        "caption_texts": [
+          "What value is shown for Mexico?"
+        ],
+        "failed_rules": [],
+        "hashes_match": true,
+        "image_sha256": "d0af12a92161472354c084b875995732ce74e1236d2ca705ea874e2051296745",
+        "question_in_image": true,
+        "redraw_sha256": "d0af12a92161472354c084b875995732ce74e1236d2ca705ea874e2051296745",
+        "render_error": null
+      },
+      "passed": true
+    },
+    {
+      "check": "4_ocr",
+      "details": {
+        "caption_masked": true,
+        "found": {
+          "6.7m": true,
+          "mexico": true
+        },
+        "found_via": {
+          "6.7m": "crop_value_x3",
+          "mexico": "crop_rot_0"
+        },
+        "ocr_text": "international tourist arrivals (2016) synthetic data",
+        "required": [
+          "6.7m",
+          "mexico"
+        ],
+        "tesseract_version": "5.4.0.20240606"
+      },
+      "passed": true
+    },
+    {
+      "check": "5_pixels",
+      "details": {
+        "bar_count": 5,
+        "bars": [
+          {
+            "category_label": "France",
+            "length_px": 762,
+            "rect": [
+              120,
+              111,
+              762,
+              76
+            ],
+            "value_label": "51.2M"
+          },
+          {
+            "category_label": "Japan",
+            "length_px": 813,
+            "rect": [
+              120,
+              238,
+              813,
+              76
+            ],
+            "value_label": "54.6M"
+          },
+          {
+            "category_label": "Turkey",
+            "length_px": 55,
+            "rect": [
+              120,
+              365,
+              55,
+              76
+            ],
+            "value_label": "3.8M"
+          },
+          {
+            "category_label": "Mexico",
+            "length_px": 97,
+            "rect": [
+              120,
+              492,
+              97,
+              76
+            ],
+            "value_label": "6.7M"
+          },
+          {
+            "category_label": "Spain",
+            "length_px": 974,
+            "rect": [
+              120,
+              619,
+              974,
+              76
+            ],
+            "value_label": "65.4M"
+          }
+        ],
+        "category_count": 5,
+        "expected_answer": "6.7M",
+        "match": true,
+        "orientation": "horizontal",
+        "orientation_confirmed": true,
+        "pixel_answer": "6.7M",
+        "reasons": [],
+        "rejected_regions": 0,
+        "task_type": "value_lookup"
+      },
+      "passed": true
+    },
+    {
+      "check": "6_counterfactual",
+      "details": {
+        "altered_answer": "10.0M",
+        "altered_values": [
+          51197900,
+          54604771,
+          3828490,
+          10025745,
+          65430990
+        ],
+        "changed": true,
+        "original_answer": "6.7M",
+        "pixel_answer_after_redraw": "10.0M",
+        "reader_passed": true,
+        "reasons": [],
+        "task_type": "value_lookup"
+      },
+      "passed": true
+    }
+  ],
+  "package_id": "bar-tourism-000003-value_lookup",
+  "passed": true
+}

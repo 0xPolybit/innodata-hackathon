@@ -1,0 +1,14 @@
+{
+  "answer": "Italy",
+  "answer_category": "Italy",
+  "answer_printed_in_image": true,
+  "answer_value": 75703533,
+  "domain": "tourism",
+  "family": "line",
+  "question": "Which series is highest in 2020?",
+  "question_in_image": true,
+  "reasoning_steps": 3,
+  "spec_index": 3,
+  "task_type": "series_at_x",
+  "year": "2020"
+}

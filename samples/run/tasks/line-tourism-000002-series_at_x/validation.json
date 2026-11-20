@@ -1,0 +1,125 @@
+{
+  "checks": [
+    {
+      "check": "1_schema",
+      "details": {
+        "failed_rules": [],
+        "failures": [],
+        "spec_error": null,
+        "spec_valid": true,
+        "task_is_object": true,
+        "task_type": "series_at_x"
+      },
+      "passed": true
+    },
+    {
+      "check": "2_layout",
+      "details": {
+        "box_count": 14,
+        "canvas": [
+          1200.0,
+          800.0
+        ],
+        "malformed_boxes": [],
+        "min_font_px": 9,
+        "outside_canvas": [],
+        "overlapping_pairs": [],
+        "small_font_boxes": []
+      },
+      "passed": true
+    },
+    {
+      "check": "3_line_ambiguity",
+      "details": {
+        "answer": "Turkey",
+        "failed_rules": [],
+        "largest": 86170572,
+        "margin": 0.6939106427191872,
+        "min_margin": 0.05,
+        "reasons": [],
+        "second_largest": 26375895,
+        "top_series": "Turkey",
+        "values_at_year": {
+          "Thailand": 26375895,
+          "Turkey": 86170572
+        },
+        "year": "2025"
+      },
+      "passed": true
+    },
+    {
+      "check": "4_ocr",
+      "details": {
+        "caption_masked": true,
+        "found": {
+          "turkey": true
+        },
+        "found_via": {
+          "turkey": "full"
+        },
+        "ocr_text": "international tourist arrivals (2019) \u2014e thailand \u2014e turkey 2017 2018 2019 2020 2021 2022 2023 2024 2025 synthetic data",
+        "required": [
+          "turkey"
+        ],
+        "tesseract_version": "5.4.0.20240606"
+      },
+      "passed": true
+    },
+    {
+      "check": "5_line_pixels",
+      "details": {
+        "colours": {
+          "Thailand": [
+            76,
+            114,
+            176
+          ],
+          "Turkey": [
+            221,
+            132,
+            82
+          ]
+        },
+        "expected_answer": "Turkey",
+        "gap_fraction": 0.5786718728760568,
+        "pixel_answer": "Turkey",
+        "reasons": [],
+        "x_source": "anchor",
+        "y_positions": {
+          "Thailand": 543.254,
+          "Turkey": 190.264
+        },
+        "year": "2025",
+        "year_column": 1098
+      },
+      "passed": true
+    },
+    {
+      "check": "6_line_counterfactual",
+      "details": {
+        "altered_answer": "Thailand",
+        "altered_value": 26375895,
+        "changed": true,
+        "original_answer": "Turkey",
+        "pixel_answer_after_redraw": "Thailand",
+        "reader_passed": true,
+        "reasons": [],
+        "year": "2025"
+      },
+      "passed": true
+    },
+    {
+      "check": "7_line_redraw",
+      "details": {
+        "hashes_match": true,
+        "image_sha256": "0fbf4a550e2bbcd6ffb62367f5727d691f77927fbb1eb6ef222f5599abb85d66",
+        "question_in_image": true,
+        "reasons": [],
+        "redraw_sha256": "0fbf4a550e2bbcd6ffb62367f5727d691f77927fbb1eb6ef222f5599abb85d66"
+      },
+      "passed": true
+    }
+  ],
+  "package_id": "line-tourism-000002-series_at_x",
+  "passed": true
+}

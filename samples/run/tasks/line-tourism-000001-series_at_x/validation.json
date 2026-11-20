@@ -1,0 +1,132 @@
+{
+  "checks": [
+    {
+      "check": "1_schema",
+      "details": {
+        "failed_rules": [],
+        "failures": [],
+        "spec_error": null,
+        "spec_valid": true,
+        "task_is_object": true,
+        "task_type": "series_at_x"
+      },
+      "passed": true
+    },
+    {
+      "check": "2_layout",
+      "details": {
+        "box_count": 13,
+        "canvas": [
+          1200.0,
+          800.0
+        ],
+        "malformed_boxes": [],
+        "min_font_px": 9,
+        "outside_canvas": [],
+        "overlapping_pairs": [],
+        "small_font_boxes": []
+      },
+      "passed": true
+    },
+    {
+      "check": "3_line_ambiguity",
+      "details": {
+        "answer": "Thailand",
+        "failed_rules": [],
+        "largest": 53243083,
+        "margin": 0.3672850800168728,
+        "min_margin": 0.05,
+        "reasons": [],
+        "second_largest": 33687693,
+        "top_series": "Thailand",
+        "values_at_year": {
+          "France": 17399701,
+          "Italy": 33687693,
+          "Thailand": 53243083
+        },
+        "year": "2021"
+      },
+      "passed": true
+    },
+    {
+      "check": "4_ocr",
+      "details": {
+        "caption_masked": true,
+        "found": {
+          "thailand": true
+        },
+        "found_via": {
+          "thailand": "full"
+        },
+        "ocr_text": "international tourist arrivals (2017) \u2014e\u2014 france \u2014e thailand \u2014e italy 2019 2020 2021 2022 2023 2024 2025 synthetic data",
+        "required": [
+          "thailand"
+        ],
+        "tesseract_version": "5.4.0.20240606"
+      },
+      "passed": true
+    },
+    {
+      "check": "5_line_pixels",
+      "details": {
+        "colours": {
+          "France": [
+            76,
+            114,
+            176
+          ],
+          "Italy": [
+            85,
+            168,
+            104
+          ],
+          "Thailand": [
+            221,
+            132,
+            82
+          ]
+        },
+        "expected_answer": "Thailand",
+        "gap_fraction": 0.18360655737704917,
+        "pixel_answer": "Thailand",
+        "reasons": [],
+        "x_source": "anchor",
+        "y_positions": {
+          "France": 568.79,
+          "Italy": 474.683,
+          "Thailand": 362.683
+        },
+        "year": "2021",
+        "year_column": 440
+      },
+      "passed": true
+    },
+    {
+      "check": "6_line_counterfactual",
+      "details": {
+        "altered_answer": "Italy",
+        "altered_value": 33687693,
+        "changed": true,
+        "original_answer": "Thailand",
+        "pixel_answer_after_redraw": "Italy",
+        "reader_passed": true,
+        "reasons": [],
+        "year": "2021"
+      },
+      "passed": true
+    },
+    {
+      "check": "7_line_redraw",
+      "details": {
+        "hashes_match": true,
+        "image_sha256": "b8dc8e2cd95f6c2d422e4e69862feee960a885b229d48fa7618dcc9ca802fa0c",
+        "question_in_image": true,
+        "reasons": [],
+        "redraw_sha256": "b8dc8e2cd95f6c2d422e4e69862feee960a885b229d48fa7618dcc9ca802fa0c"
+      },
+      "passed": true
+    }
+  ],
+  "package_id": "line-tourism-000001-series_at_x",
+  "passed": true
+}
